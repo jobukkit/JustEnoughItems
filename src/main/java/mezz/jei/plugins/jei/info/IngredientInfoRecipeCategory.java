@@ -1,15 +1,19 @@
 package mezz.jei.plugins.jei.info;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import java.util.Collections;
 import java.util.List;
 
+import mezz.jei.api.gui.ingredient.IGuiIngredientGroup;
+import mezz.jei.api.runtime.IIngredientManager;
+import mezz.jei.plugins.jei.JeiInternalPlugin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
-
+import net.minecraft.util.text.ITextProperties;
+import net.minecraft.util.text.LanguageMap;
 import mezz.jei.api.constants.VanillaRecipeCategoryUid;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IGuiFluidStackGroup;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredientType;
@@ -18,6 +22,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.gui.textures.Textures;
 import mezz.jei.util.Translator;
 
+@SuppressWarnings("rawtypes")
 public class IngredientInfoRecipeCategory implements IRecipeCategory<IngredientInfoRecipe> {
 	public static final int recipeWidth = 160;
 	public static final int recipeHeight = 125;
@@ -26,13 +31,15 @@ public class IngredientInfoRecipeCategory implements IRecipeCategory<IngredientI
 	private final IDrawable background;
 	private final IDrawable icon;
 	private final IDrawable slotBackground;
+	private final JeiInternalPlugin jeiPlugin;
 	private final String localizedName;
 
-	public IngredientInfoRecipeCategory(IGuiHelper guiHelper, Textures textures) {
-		background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight);
-		icon = textures.getInfoIcon();
-		slotBackground = guiHelper.getSlotDrawable();
-		localizedName = Translator.translateToLocal("gui.jei.category.itemInformation");
+	public IngredientInfoRecipeCategory(IGuiHelper guiHelper, Textures textures, JeiInternalPlugin jeiPlugin) {
+		this.background = guiHelper.createBlankDrawable(recipeWidth, recipeHeight);
+		this.icon = textures.getInfoIcon();
+		this.slotBackground = guiHelper.getSlotDrawable();
+		this.jeiPlugin = jeiPlugin;
+		this.localizedName = Translator.translateToLocal("gui.jei.category.itemInformation");
 	}
 
 	@Override
@@ -73,17 +80,17 @@ public class IngredientInfoRecipeCategory implements IRecipeCategory<IngredientI
 	}
 
 	@Override
-	public void draw(IngredientInfoRecipe recipe, double mouseX, double mouseY) {
-		drawTyped((IngredientInfoRecipe<?>) recipe);
+	public void draw(IngredientInfoRecipe recipe, MatrixStack matrixStack, double mouseX, double mouseY) {
+		drawTyped(matrixStack, (IngredientInfoRecipe<?>) recipe);
 	}
 
-	private <T> void drawTyped(IngredientInfoRecipe<T> recipe) {
+	private <T> void drawTyped(MatrixStack matrixStack, IngredientInfoRecipe<T> recipe) {
 		int xPos = 0;
 		int yPos = slotBackground.getHeight() + 4;
 
 		Minecraft minecraft = Minecraft.getInstance();
-		for (String descriptionLine : recipe.getDescription()) {
-			minecraft.fontRenderer.drawString(descriptionLine, xPos, yPos, 0xFF000000);
+		for (ITextProperties descriptionLine : recipe.getDescription()) {
+			minecraft.fontRenderer.func_238422_b_(matrixStack, LanguageMap.getInstance().func_241870_a(descriptionLine), xPos, yPos, 0xFF000000);
 			yPos += minecraft.fontRenderer.FONT_HEIGHT + lineSpacing;
 		}
 	}
@@ -97,8 +104,13 @@ public class IngredientInfoRecipeCategory implements IRecipeCategory<IngredientI
 		guiItemStacks.setBackground(0, slotBackground);
 		guiItemStacks.set(ingredients);
 
-		IGuiFluidStackGroup guiFluidStackGroup = recipeLayout.getFluidStacks();
-		guiFluidStackGroup.init(0, true, xPos + 1, 1);
-		guiFluidStackGroup.set(ingredients);
+		IIngredientManager ingredientManager = jeiPlugin.ingredientManager;
+		if (ingredientManager != null) {
+			for (IIngredientType<?> type : ingredientManager.getRegisteredIngredientTypes()) {
+				IGuiIngredientGroup<?> group = recipeLayout.getIngredientsGroup(type);
+				group.init(0, true, xPos + 1, 1);
+				group.set(ingredients);
+			}
+		}
 	}
 }

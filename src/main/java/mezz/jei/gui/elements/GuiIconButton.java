@@ -1,5 +1,6 @@
 package mezz.jei.gui.elements;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -9,6 +10,7 @@ import net.minecraft.client.renderer.Rectangle2d;
 import mezz.jei.Internal;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.gui.textures.Textures;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * A gui button that has an {@link IDrawable} instead of a string label.
@@ -17,7 +19,7 @@ public class GuiIconButton extends Button {
 	private final IDrawable icon;
 
 	public GuiIconButton(IDrawable icon, IPressable pressable) {
-		super(0, 0, 0, 0, "", pressable);
+		super(0, 0, 0, 0, StringTextComponent.EMPTY, pressable);
 		this.icon = icon;
 	}
 
@@ -29,7 +31,7 @@ public class GuiIconButton extends Button {
 	}
 
 	@Override
-	public void render(int mouseX, int mouseY, float partialTicks) {
+	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		if (this.visible) {
 			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 			boolean hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
@@ -39,8 +41,8 @@ public class GuiIconButton extends Button {
 			Textures textures = Internal.getTextures();
 			Minecraft minecraft = Minecraft.getInstance();
 			DrawableNineSliceTexture texture = textures.getButtonForState(this.active, hovered);
-			texture.draw(this.x, this.y, this.width, this.height);
-			this.renderBg(minecraft, mouseX, mouseY);
+			texture.draw(matrixStack, this.x, this.y, this.width, this.height);
+			this.renderBg(matrixStack, minecraft, mouseX, mouseY);
 
 			int color = 14737632;
 			if (packedFGColor != 0) {
@@ -62,10 +64,10 @@ public class GuiIconButton extends Button {
 
 			double xOffset = x + (width - icon.getWidth()) / 2.0;
 			double yOffset = y + (height - icon.getHeight()) / 2.0;
-			RenderSystem.pushMatrix();
-			RenderSystem.translated(xOffset, yOffset, 0);
-			icon.draw();
-			RenderSystem.popMatrix();
+			matrixStack.push();
+			matrixStack.translate(xOffset, yOffset, 0);
+			icon.draw(matrixStack);
+			matrixStack.pop();
 			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		}
 	}

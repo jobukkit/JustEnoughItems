@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import net.minecraft.util.Util;
 import net.minecraftforge.items.ItemHandlerHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.CommandNode;
@@ -64,8 +65,8 @@ public final class CommandUtilServer {
 
 	public static void writeChatMessage(PlayerEntity player, String translationKey, TextFormatting color) {
 		TranslationTextComponent component = new TranslationTextComponent(translationKey);
-		component.getStyle().setColor(color);
-		player.sendMessage(component);
+		component.getStyle().applyFormatting(color);
+		player.sendMessage(component, Util.DUMMY_UUID);
 	}
 
 	public static boolean hasPermission(PlayerEntity sender) {
@@ -147,6 +148,7 @@ public final class CommandUtilServer {
 	 *
 	 * @see GiveCommand#giveItem(CommandSource, ItemInput, Collection, int)
 	 */
+	@SuppressWarnings("JavadocReference")
 	private static void giveToInventory(PlayerEntity entityplayermp, ItemStack itemStack) {
 		ItemStack itemStackCopy = itemStack.copy();
 		boolean flag = entityplayermp.inventory.addItemStackToInventory(itemStack);

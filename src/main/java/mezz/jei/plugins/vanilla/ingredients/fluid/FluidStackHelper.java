@@ -1,5 +1,6 @@
 package mezz.jei.plugins.vanilla.ingredients.fluid;
 
+import java.util.Collection;
 import javax.annotation.Nullable;
 import java.util.Collections;
 
@@ -34,7 +35,7 @@ public class FluidStackHelper implements IIngredientHelper<FluidStack> {
 	@Override
 	public String getDisplayName(FluidStack ingredient) {
 		ITextComponent displayName = ingredient.getDisplayName();
-		return displayName.getFormattedText();
+		return displayName.getString();
 	}
 
 	@Override
@@ -111,16 +112,20 @@ public class FluidStackHelper implements IIngredientHelper<FluidStack> {
 	}
 
 	@Override
+	public Collection<ResourceLocation> getTags(FluidStack ingredient) {
+		return ingredient.getFluid().getTags();
+	}
+
+	@Override
 	public String getErrorInfo(@Nullable FluidStack ingredient) {
 		if (ingredient == null) {
 			return "null";
 		}
 		MoreObjects.ToStringHelper toStringHelper = MoreObjects.toStringHelper(FluidStack.class);
-
 		Fluid fluid = ingredient.getFluid();
 		if (fluid != null) {
 			ITextComponent displayName = ingredient.getDisplayName();
-			toStringHelper.add("Fluid", displayName.getFormattedText());
+			toStringHelper.add("Fluid", displayName.getString());
 		} else {
 			toStringHelper.add("Fluid", "null");
 		}

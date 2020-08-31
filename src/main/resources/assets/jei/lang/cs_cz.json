@@ -4,8 +4,8 @@
   "jei.tooltip.show.recipes": "Zobrazit Recepty",
   "jei.tooltip.show.all.recipes": "Zobrazit Všechny Recepty",
   "jei.tooltip.delete.item": "Klikni pro smazání",
-  "jei.tooltip.liquid.amount.with.capacity": "%,d / %,d mB",
-  "jei.tooltip.liquid.amount": "%,d mB",
+  "jei.tooltip.liquid.amount.with.capacity": "%s / %s mB",
+  "jei.tooltip.liquid.amount": "%s mB",
   "jei.tooltip.transfer": "Přesunout itemy",
   "jei.tooltip.recipe.tag": "Jakkýkoliv přístup: %s",
   "jei.tooltip.item.colors": "Barvy: %s",
@@ -43,6 +43,7 @@
   "key.jei.nextPage": "Show Next Page",
 
   "_comment": "Config",
+  "config.jei": "JEI Config",
   "config.jei.default": "Výchozí",
   "config.jei.valid": "Platné",
   "config.jei.title": "%MODNAME Config",
@@ -70,6 +71,7 @@
   "config.jei.search.colorSearchMode.comment": "Vyžaduje \"^\" před slovem pro hledání barev itemů.",
   "config.jei.search.resourceIdSearchMode": "&ResourceId",
   "config.jei.search.resourceIdSearchMode.comment": "Search mode for resources ids (prefix: &)",
+  "config.jei.search.searchAdvancedTooltips": "Search advanced tooltips",
   "config.jei.advanced": "Pokročilé",
   "config.jei.advanced.comment": "Pokročilé funkce pro JEI.",
   "config.jei.advanced.itemBlacklist": "Černý list itemů",
@@ -108,6 +110,9 @@
   "gui.jei.category.brewing": "Lektvaření",
   "gui.jei.category.brewing.steps": "Krok: %s",
   "gui.jei.category.itemInformation": "Popis",
+
+  "_comment": "Messages",
+  "jei.message.ftbguilib": "Install FTB GUI Library to access ingame config",
 
   "_comment": "DEBUG (for debug mode, do not need translation)",
   "description.jei.wooden.door.1": "Dřevěné dveře ti umožní blokovat příšery před vstupem do budovy.\\nTestovací věty.",

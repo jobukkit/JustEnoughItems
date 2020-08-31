@@ -1,5 +1,6 @@
 package mezz.jei.gui.recipes;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import mezz.jei.gui.TooltipRenderer;
 import mezz.jei.input.IMouseHandler;
 import mezz.jei.input.IPaged;
 import mezz.jei.util.MathUtil;
+import net.minecraft.util.text.ITextComponent;
 
 /**
  * The area drawn on top and bottom of the {@link RecipesGui} that show the recipe categories.
@@ -34,7 +36,7 @@ public class RecipeGuiTabs implements IMouseHandler, IPaged {
 	}
 
 	public void initLayout(RecipesGui recipesGui) {
-		ImmutableList<IRecipeCategory> categories = recipeGuiLogic.getRecipeCategories();
+		ImmutableList<IRecipeCategory<?>> categories = recipeGuiLogic.getRecipeCategories();
 		if (!categories.isEmpty()) {
 			int totalWidth = 0;
 			categoriesPerPage = 0;
@@ -57,7 +59,7 @@ public class RecipeGuiTabs implements IMouseHandler, IPaged {
 
 			pageCount = MathUtil.divideCeil(categories.size(), categoriesPerPage);
 
-			IRecipeCategory currentCategory = recipeGuiLogic.getSelectedRecipeCategory();
+			IRecipeCategory<?> currentCategory = recipeGuiLogic.getSelectedRecipeCategory();
 			int categoryIndex = categories.indexOf(currentCategory);
 			pageNumber = categoryIndex / categoriesPerPage;
 
@@ -77,7 +79,7 @@ public class RecipeGuiTabs implements IMouseHandler, IPaged {
 	private void updateLayout() {
 		tabs.clear();
 
-		ImmutableList<IRecipeCategory> categories = recipeGuiLogic.getRecipeCategories();
+		ImmutableList<IRecipeCategory<?>> categories = recipeGuiLogic.getRecipeCategories();
 
 		int tabX = area.getX();
 
@@ -87,7 +89,7 @@ public class RecipeGuiTabs implements IMouseHandler, IPaged {
 			if (index >= categories.size()) {
 				break;
 			}
-			IRecipeCategory category = categories.get(index);
+			IRecipeCategory<?> category = categories.get(index);
 			RecipeGuiTab tab = new RecipeCategoryTab(recipeGuiLogic, category, tabX, area.getY());
 			this.tabs.add(tab);
 			tabX += RecipeGuiTab.TAB_WIDTH;
@@ -96,8 +98,9 @@ public class RecipeGuiTabs implements IMouseHandler, IPaged {
 		pageNavigation.updatePageState();
 	}
 
-	public void draw(Minecraft minecraft, int mouseX, int mouseY) {
-		IRecipeCategory selectedCategory = recipeGuiLogic.getSelectedRecipeCategory();
+	@SuppressWarnings("deprecation")
+	public void draw(Minecraft minecraft, MatrixStack matrixStack, int mouseX, int mouseY) {
+		IRecipeCategory<?> selectedCategory = recipeGuiLogic.getSelectedRecipeCategory();
 
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
@@ -108,7 +111,7 @@ public class RecipeGuiTabs implements IMouseHandler, IPaged {
 		{
 			for (RecipeGuiTab tab : tabs) {
 				boolean selected = tab.isSelected(selectedCategory);
-				tab.draw(selected, mouseX, mouseY);
+				tab.draw(selected, matrixStack, mouseX, mouseY);
 				if (tab.isMouseOver(mouseX, mouseY)) {
 					hovered = tab;
 				}
@@ -117,11 +120,11 @@ public class RecipeGuiTabs implements IMouseHandler, IPaged {
 		RenderSystem.disableAlphaTest();
 		RenderSystem.enableDepthTest();
 
-		pageNavigation.draw(minecraft, mouseX, mouseY, minecraft.getRenderPartialTicks());
+		pageNavigation.draw(minecraft, matrixStack, mouseX, mouseY, minecraft.getRenderPartialTicks());
 
 		if (hovered != null) {
-			List<String> tooltip = hovered.getTooltip();
-			TooltipRenderer.drawHoveringText(tooltip, mouseX, mouseY);
+			List<ITextComponent> tooltip = hovered.getTooltip();
+			TooltipRenderer.drawHoveringText(tooltip, mouseX, mouseY, matrixStack);
 		}
 	}
 

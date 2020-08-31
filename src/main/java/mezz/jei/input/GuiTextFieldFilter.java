@@ -1,5 +1,6 @@
 package mezz.jei.input;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import mezz.jei.gui.HoverChecker;
 import mezz.jei.gui.elements.DrawableNineSliceTexture;
 import mezz.jei.gui.ingredients.IIngredientListElement;
 import mezz.jei.gui.overlay.IIngredientGridSource;
+import net.minecraft.util.text.StringTextComponent;
 import org.lwjgl.glfw.GLFW;
 
 public class GuiTextFieldFilter extends TextFieldWidget {
@@ -31,7 +33,7 @@ public class GuiTextFieldFilter extends TextFieldWidget {
 
 	public GuiTextFieldFilter(IIngredientGridSource ingredientSource, IWorldConfig worldConfig) {
 		// TODO narrator string
-		super(Minecraft.getInstance().fontRenderer, 0, 0, 0, 0, "");
+		super(Minecraft.getInstance().fontRenderer, 0, 0, 0, 0, StringTextComponent.EMPTY);
 		this.worldConfig = worldConfig;
 
 		setMaxStringLength(maxSearchLength);
@@ -159,13 +161,13 @@ public class GuiTextFieldFilter extends TextFieldWidget {
 	}
 
 	@Override
-	public void renderButton(int mouseX, int mouseY, float partialTicks) {
+	public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		this.isDrawing = true;
 		if (this.getVisible()) {
 			RenderSystem.color4f(1, 1, 1, 1);
-			background.draw(this.x, this.y, this.width, this.height);
+			background.draw(matrixStack, this.x, this.y, this.width, this.height);
 		}
-		super.renderButton(mouseX, mouseY, partialTicks);
+		super.renderButton(matrixStack, mouseX, mouseY, partialTicks);
 		this.isDrawing = false;
 	}
 	// end background hack

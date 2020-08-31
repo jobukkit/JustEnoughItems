@@ -1,5 +1,6 @@
 package mezz.jei.gui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.Rectangle2d;
@@ -45,14 +46,14 @@ public class PageNavigation {
 		pageNumDisplayString = (pageNum + 1) + "/" + pageCount;
 		int pageDisplayWidth = fontRenderer.getStringWidth(pageNumDisplayString);
 		pageNumDisplayX = ((backButton.x + backButton.getWidth()) + nextButton.x) / 2 - (pageDisplayWidth / 2);
-		pageNumDisplayY = backButton.y + Math.round((backButton.getHeight() - fontRenderer.FONT_HEIGHT) / 2.0f);
+		pageNumDisplayY = backButton.y + Math.round((backButton.getWidth_CLASH() - fontRenderer.FONT_HEIGHT) / 2.0f);
 	}
 
-	public void draw(Minecraft minecraft, int mouseX, int mouseY, float partialTicks) {
+	public void draw(Minecraft minecraft, MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		if (!hideOnSinglePage || this.paged.hasNext() || this.paged.hasPrevious()) {
-			minecraft.fontRenderer.drawStringWithShadow(pageNumDisplayString, pageNumDisplayX, pageNumDisplayY, 0xFFFFFFFF);
-			nextButton.render(mouseX, mouseY, partialTicks);
-			backButton.render(mouseX, mouseY, partialTicks);
+			minecraft.fontRenderer.drawStringWithShadow(matrixStack, pageNumDisplayString, pageNumDisplayX, pageNumDisplayY, 0xFFFFFFFF);
+			nextButton.render(matrixStack, mouseX, mouseY, partialTicks);
+			backButton.render(matrixStack, mouseX, mouseY, partialTicks);
 		}
 	}
 

@@ -15,7 +15,7 @@ import mezz.jei.api.registration.IModIngredientRegistration;
  * Allows plugins to change how JEI is displayed next to their mod's guis.
  * Register your implementation with {@link IGuiHandlerRegistration#addGuiContainerHandler(Class, IGuiContainerHandler)}.
  */
-public interface IGuiContainerHandler<T extends ContainerScreen> {
+public interface IGuiContainerHandler<T extends ContainerScreen<?>> {
 	/**
 	 * Give JEI information about extra space that the {@link ContainerScreen} takes up.
 	 * Used for moving JEI out of the way of extra things like gui tabs.
@@ -46,21 +46,10 @@ public interface IGuiContainerHandler<T extends ContainerScreen> {
 	 * Return the JEI-controlled clickable areas for this GUI.
 	 * This is useful when you want to add a spot on your GUI that opens JEI and shows recipes.
 	 *
-	 * @deprecated since JEI version 6.0.1. Prefer and implement {@link #getGuiClickableAreas(ContainerScreen, double, double)} instead.
-	 */
-	@Deprecated
-	default Collection<IGuiClickableArea> getGuiClickableAreas(T containerScreen) {
-		return Collections.emptyList();
-	}
-
-	/**
-	 * Return the JEI-controlled clickable areas for this GUI.
-	 * This is useful when you want to add a spot on your GUI that opens JEI and shows recipes.
-	 *
 	 * Optionally, you can restrict what you return here based on the current mouse position.
 	 * @since JEI version 6.0.1
 	 */
 	default Collection<IGuiClickableArea> getGuiClickableAreas(T containerScreen, double mouseX, double mouseY) {
-		return getGuiClickableAreas(containerScreen);
+		return Collections.emptyList();
 	}
 }

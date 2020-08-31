@@ -9,14 +9,11 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagCollection;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 
@@ -68,7 +65,7 @@ public class ItemStackHelper implements IIngredientHelper<ItemStack> {
 	@Override
 	public String getDisplayName(ItemStack ingredient) {
 		ITextComponent displayNameTextComponent = ingredient.getDisplayName();
-		String displayName = displayNameTextComponent.getUnformattedComponentText();
+		String displayName = displayNameTextComponent.getString();
 		ErrorUtil.checkNotNull(displayName, "itemStack.getDisplayName()");
 		return displayName;
 	}
@@ -161,8 +158,7 @@ public class ItemStackHelper implements IIngredientHelper<ItemStack> {
 
 	@Override
 	public Collection<ResourceLocation> getTags(ItemStack ingredient) {
-		TagCollection<Item> collection = ItemTags.getCollection();
-		return collection.getOwningTags(ingredient.getItem());
+		return ingredient.getItem().getTags();
 	}
 
 	@Override
@@ -171,7 +167,7 @@ public class ItemStackHelper implements IIngredientHelper<ItemStack> {
 		Item item = ingredient.getItem();
 		for (ItemGroup itemGroup : item.getCreativeTabs()) {
 			if (itemGroup != null) {
-				String creativeTabName = I18n.format(itemGroup.getTranslationKey());
+				String creativeTabName = itemGroup.func_242392_c().getString();
 				creativeTabsStrings.add(creativeTabName);
 			}
 		}

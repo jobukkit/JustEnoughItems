@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.gui.screen.inventory.AbstractFurnaceScreen;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.block.Blocks;
@@ -147,8 +148,8 @@ public class VanillaPlugin implements IModPlugin {
 		IJeiHelpers jeiHelpers = registration.getJeiHelpers();
 		IGuiHelper guiHelper = jeiHelpers.getGuiHelper();
 		IModIdHelper modIdHelper = jeiHelpers.getModIdHelper();
-		craftingCategory = new CraftingRecipeCategory(guiHelper, modIdHelper);
-		stonecuttingCategory = new StoneCuttingRecipeCategory(guiHelper, modIdHelper);
+		craftingCategory = new CraftingRecipeCategory(guiHelper);
+		stonecuttingCategory = new StoneCuttingRecipeCategory(guiHelper);
 		furnaceCategory = new FurnaceSmeltingCategory(guiHelper);
 		smokingCategory = new SmokingCategory(guiHelper);
 		blastingCategory = new BlastingCategory(guiHelper);
@@ -207,9 +208,10 @@ public class VanillaPlugin implements IModPlugin {
 		registration.addRecipeClickArea(BlastFurnaceScreen.class, 78, 32, 28, 23, VanillaRecipeCategoryUid.BLASTING, VanillaRecipeCategoryUid.FUEL);
 		registration.addRecipeClickArea(AnvilScreen.class, 102, 48, 22, 15, VanillaRecipeCategoryUid.ANVIL);
 
-		registration.addGuiContainerHandler(DisplayEffectsScreen.class, new InventoryEffectRendererGuiHandler());
+		registration.addGenericGuiContainerHandler(DisplayEffectsScreen.class, new InventoryEffectRendererGuiHandler<>());
 		registration.addGuiContainerHandler(CraftingScreen.class, new RecipeBookGuiHandler<>());
 		registration.addGuiContainerHandler(InventoryScreen.class, new RecipeBookGuiHandler<>());
+		registration.addGuiContainerHandler(AbstractFurnaceScreen.class, new RecipeBookGuiHandler<>());
 	}
 
 	@Override

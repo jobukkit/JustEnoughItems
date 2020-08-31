@@ -1,10 +1,12 @@
 package mezz.jei.gui.overlay;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import mezz.jei.api.ingredients.IIngredientType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.screen.Screen;
@@ -169,35 +171,35 @@ public class IngredientListOverlay implements IIngredientListOverlay, IMouseHand
 		this.searchField.update();
 	}
 
-	public void drawScreen(Minecraft minecraft, int mouseX, int mouseY, float partialTicks) {
+	public void drawScreen(Minecraft minecraft, MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		if (this.guiProperties != null) {
 			if (isListDisplayed()) {
 				RenderSystem.disableLighting();
-				this.searchField.renderButton(mouseX, mouseY, partialTicks);
-				this.contents.draw(minecraft, mouseX, mouseY, partialTicks);
-				this.configButton.draw(mouseX, mouseY, partialTicks);
+				this.searchField.renderButton(matrixStack, mouseX, mouseY, partialTicks);
+				this.contents.draw(minecraft, matrixStack, mouseX, mouseY, partialTicks);
+				this.configButton.draw(matrixStack, mouseX, mouseY, partialTicks);
 			} else {
-				this.configButton.draw(mouseX, mouseY, partialTicks);
+				this.configButton.draw(matrixStack, mouseX, mouseY, partialTicks);
 			}
 		}
 	}
 
-	public void drawTooltips(Minecraft minecraft, int mouseX, int mouseY) {
+	public void drawTooltips(Minecraft minecraft, MatrixStack matrixStack, int mouseX, int mouseY) {
 		if (isListDisplayed()) {
-			this.configButton.drawTooltips(mouseX, mouseY);
-			this.ghostIngredientDragManager.drawTooltips(minecraft, mouseX, mouseY);
-			this.contents.drawTooltips(minecraft, mouseX, mouseY);
+			this.configButton.drawTooltips(matrixStack, mouseX, mouseY);
+			this.ghostIngredientDragManager.drawTooltips(minecraft, matrixStack, mouseX, mouseY);
+			this.contents.drawTooltips(minecraft, matrixStack, mouseX, mouseY);
 		} else if (this.guiProperties != null) {
-			this.configButton.drawTooltips(mouseX, mouseY);
+			this.configButton.drawTooltips(matrixStack, mouseX, mouseY);
 		}
 	}
 
-	public void drawOnForeground(Minecraft minecraft, ContainerScreen gui, int mouseX, int mouseY) {
+	public void drawOnForeground(Minecraft minecraft, MatrixStack matrixStack, ContainerScreen<?> gui, int mouseX, int mouseY) {
 		if (isListDisplayed()) {
-			RenderSystem.pushMatrix();
-			RenderSystem.translatef(-gui.getGuiLeft(), -gui.getGuiTop(), 0);
-			this.ghostIngredientDragManager.drawOnForeground(minecraft, mouseX, mouseY);
-			RenderSystem.popMatrix();
+			matrixStack.push();
+			matrixStack.translate(-gui.getGuiLeft(), -gui.getGuiTop(), 0);
+			this.ghostIngredientDragManager.drawOnForeground(minecraft, matrixStack, mouseX, mouseY);
+			matrixStack.pop();
 		}
 	}
 
@@ -213,7 +215,8 @@ public class IngredientListOverlay implements IIngredientListOverlay, IMouseHand
 			if (ClientConfig.getInstance().isCenterSearchBarEnabled() && searchField.isMouseOver(mouseX, mouseY)) {
 				return true;
 			}
-			return MathUtil.contains(displayArea, mouseX, mouseY);
+			return MathUtil.contains(displayArea, mouseX, mouseY) &&
+				!guiScreenHelper.isInGuiExclusionArea(mouseX, mouseY);
 		} else if (this.guiProperties != null) {
 			return this.configButton.isMouseOver(mouseX, mouseY);
 		}
@@ -365,10 +368,21 @@ public class IngredientListOverlay implements IIngredientListOverlay, IMouseHand
 	@Override
 	public Object getIngredientUnderMouse() {
 		if (isListDisplayed()) {
-			IIngredientListElement elementUnderMouse = this.contents.getElementUnderMouse();
+			IIngredientListElement<?> elementUnderMouse = this.contents.getElementUnderMouse();
 			if (elementUnderMouse != null) {
 				return elementUnderMouse.getIngredient();
 			}
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nullable
+	@Override
+	public <T> T getIngredientUnderMouse(IIngredientType<T> ingredientType) {
+		Object ingredient = getIngredientUnderMouse();
+		if (ingredientType.getIngredientClass().isInstance(ingredient)) {
+			return (T) ingredient;
 		}
 		return null;
 	}
@@ -382,8 +396,8 @@ public class IngredientListOverlay implements IIngredientListOverlay, IMouseHand
 	public ImmutableList<Object> getVisibleIngredients() {
 		if (isListDisplayed()) {
 			ImmutableList.Builder<Object> visibleIngredients = ImmutableList.builder();
-			List<IIngredientListElement> visibleElements = this.contents.getVisibleElements();
-			for (IIngredientListElement element : visibleElements) {
+			List<IIngredientListElement<?>> visibleElements = this.contents.getVisibleElements();
+			for (IIngredientListElement<?> element : visibleElements) {
 				Object ingredient = element.getIngredient();
 				visibleIngredients.add(ingredient);
 			}

@@ -1,22 +1,14 @@
 package mezz.jei.gui.recipes;
 
-import javax.annotation.Nullable;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.item.ItemStack;
-
 import mezz.jei.Internal;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayoutDrawable;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IGuiFluidStackGroup;
 import mezz.jei.api.gui.ingredient.IGuiIngredientGroup;
+import mezz.jei.api.helpers.IModIdHelper;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
@@ -30,23 +22,38 @@ import mezz.jei.gui.ingredients.GuiItemStackGroup;
 import mezz.jei.ingredients.Ingredients;
 import mezz.jei.util.ErrorUtil;
 import mezz.jei.util.MathUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.renderer.Rectangle2d;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.fluids.FluidStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class RecipeLayout implements IRecipeLayoutDrawable {
+import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+public class RecipeLayout<T> implements IRecipeLayoutDrawable {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final int HIGHLIGHT_COLOR = 0x7FFFFFFF;
 	private static final int RECIPE_BUTTON_SIZE = 13;
 	private static final int RECIPE_BORDER_PADDING = 4;
 
 	private final int ingredientCycleOffset = (int) ((Math.random() * 10000) % Integer.MAX_VALUE);
-	private final IRecipeCategory recipeCategory;
+	private final IRecipeCategory<T> recipeCategory;
 	private final GuiItemStackGroup guiItemStackGroup;
 	private final GuiFluidStackGroup guiFluidStackGroup;
-	private final Map<IIngredientType, GuiIngredientGroup> guiIngredientGroups;
+	private final Map<IIngredientType<?>, GuiIngredientGroup<?>> guiIngredientGroups;
 	@Nullable
 	private final RecipeTransferButton recipeTransferButton;
-	private final Object recipe;
+	private final T recipe;
 	@Nullable
 	private final Focus<?> focus;
 	@Nullable
@@ -57,12 +64,15 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 	private int posY;
 
 	@Nullable
-	public static <T> RecipeLayout create(int index, IRecipeCategory<T> recipeCategory, T recipe, @Nullable Focus focus, int posX, int posY) {
-		RecipeLayout recipeLayout = new RecipeLayout(index, recipeCategory, recipe, focus, posX, posY);
+	public static <T> RecipeLayout<T> create(int index, IRecipeCategory<T> recipeCategory, T recipe, @Nullable Focus<?> focus, IModIdHelper modIdHelper, int posX, int posY) {
+		RecipeLayout<T> recipeLayout = new RecipeLayout<>(index, recipeCategory, recipe, focus, posX, posY);
 		try {
 			IIngredients ingredients = new Ingredients();
 			recipeCategory.setIngredients(recipe, ingredients);
 			recipeCategory.setRecipe(recipeLayout, recipe, ingredients);
+			if (recipe instanceof IRecipe) {
+				addOutputSlotTooltip(recipeLayout, (IRecipe<?>) recipe, modIdHelper);
+			}
 			return recipeLayout;
 		} catch (RuntimeException | LinkageError e) {
 			LOGGER.error("Error caught from Recipe Category: {}", recipeCategory.getClass().getCanonicalName(), e);
@@ -70,24 +80,45 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 		return null;
 	}
 
-	private <T> RecipeLayout(int index, IRecipeCategory<T> recipeCategory, T recipe, @Nullable Focus<?> focus, int posX, int posY) {
+	private static void addOutputSlotTooltip(RecipeLayout<?> recipeLayout, IRecipe<?> recipe, IModIdHelper modIdHelper) {
+		GuiItemStackGroup guiItemStackGroup = recipeLayout.guiItemStackGroup;
+
+		ResourceLocation registryName = recipe.getId();
+		guiItemStackGroup.addTooltipCallback((slotIndex, input, ingredient, tooltip) -> {
+			if (guiItemStackGroup.getOutputSlots().contains(slotIndex)) {
+				if (modIdHelper.isDisplayingModNameEnabled()) {
+					String recipeModId = registryName.getNamespace();
+					boolean modIdDifferent = false;
+					ResourceLocation itemRegistryName = ingredient.getItem().getRegistryName();
+					if (itemRegistryName != null) {
+						String itemModId = itemRegistryName.getNamespace();
+						modIdDifferent = !recipeModId.equals(itemModId);
+					}
+
+					if (modIdDifferent) {
+						String modName = modIdHelper.getFormattedModNameForModId(recipeModId);
+						TranslationTextComponent recipeBy = new TranslationTextComponent("jei.tooltip.recipe.by", modName);
+						tooltip.add(recipeBy.mergeStyle(TextFormatting.GRAY));
+					}
+				}
+
+				boolean showAdvanced = Minecraft.getInstance().gameSettings.advancedItemTooltips || Screen.hasShiftDown();
+				if (showAdvanced) {
+					TranslationTextComponent recipeId = new TranslationTextComponent("jei.tooltip.recipe.id", registryName.toString());
+					tooltip.add(recipeId.mergeStyle(TextFormatting.DARK_GRAY));
+				}
+			}
+		});
+	}
+
+	private RecipeLayout(int index, IRecipeCategory<T> recipeCategory, T recipe, @Nullable Focus<?> focus, int posX, int posY) {
 		ErrorUtil.checkNotNull(recipeCategory, "recipeCategory");
 		ErrorUtil.checkNotNull(recipe, "recipe");
 		this.recipeCategory = recipeCategory;
 		this.focus = focus;
 
-		Focus<ItemStack> itemStackFocus = null;
-		Focus<FluidStack> fluidStackFocus = null;
-		if (focus != null) {
-			Object focusValue = focus.getValue();
-			if (focusValue instanceof ItemStack) {
-				//noinspection unchecked
-				itemStackFocus = (Focus<ItemStack>) focus;
-			} else if (focusValue instanceof FluidStack) {
-				//noinspection unchecked
-				fluidStackFocus = (Focus<FluidStack>) focus;
-			}
-		}
+		Focus<ItemStack> itemStackFocus = Focus.cast(focus, VanillaTypes.ITEM);
+		Focus<FluidStack> fluidStackFocus = Focus.cast(focus, VanillaTypes.FLUID);
 		this.guiItemStackGroup = new GuiItemStackGroup(itemStackFocus, ingredientCycleOffset);
 		this.guiFluidStackGroup = new GuiFluidStackGroup(fluidStackFocus, ingredientCycleOffset);
 
@@ -122,7 +153,8 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 	}
 
 	@Override
-	public void drawRecipe(int mouseX, int mouseY) {
+	@SuppressWarnings("deprecation")
+	public void drawRecipe(MatrixStack matrixStack, int mouseX, int mouseY) {
 		IDrawable background = recipeCategory.getBackground();
 
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -132,31 +164,30 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 		final int recipeMouseX = mouseX - posX;
 		final int recipeMouseY = mouseY - posY;
 
-		RenderSystem.pushMatrix();
-		RenderSystem.translatef(posX, posY, 0.0F);
+		matrixStack.push();
+		matrixStack.translate(posX, posY, 0);
 		{
 			IDrawable categoryBackground = recipeCategory.getBackground();
 			int width = categoryBackground.getWidth() + (2 * RECIPE_BORDER_PADDING);
 			int height = categoryBackground.getHeight() + (2 * RECIPE_BORDER_PADDING);
-			recipeBorder.draw(-RECIPE_BORDER_PADDING, -RECIPE_BORDER_PADDING, width, height);
-			background.draw();
-			//noinspection unchecked
-			recipeCategory.draw(recipe, recipeMouseX, recipeMouseY);
+			recipeBorder.draw(matrixStack, -RECIPE_BORDER_PADDING, -RECIPE_BORDER_PADDING, width, height);
+			background.draw(matrixStack);
+			recipeCategory.draw(recipe, matrixStack, recipeMouseX, recipeMouseY);
 			// drawExtras and drawInfo often render text which messes with the color, this clears it
 			RenderSystem.color4f(1, 1, 1, 1);
 			if (shapelessIcon != null) {
-				shapelessIcon.draw(background.getWidth());
+				shapelessIcon.draw(matrixStack, background.getWidth());
 			}
 		}
-		RenderSystem.popMatrix();
+		matrixStack.pop();
 
-		for (GuiIngredientGroup guiIngredientGroup : guiIngredientGroups.values()) {
-			guiIngredientGroup.draw(posX, posY, HIGHLIGHT_COLOR, mouseX, mouseY);
+		for (GuiIngredientGroup<?> guiIngredientGroup : guiIngredientGroups.values()) {
+			guiIngredientGroup.draw(matrixStack, posX, posY, HIGHLIGHT_COLOR, mouseX, mouseY);
 		}
 		if (recipeTransferButton != null) {
 			Minecraft minecraft = Minecraft.getInstance();
 			float partialTicks = minecraft.getRenderPartialTicks();
-			recipeTransferButton.render(mouseX, mouseY, partialTicks);
+			recipeTransferButton.render(matrixStack, mouseX, mouseY, partialTicks);
 		}
 		RenderSystem.disableBlend();
 		RenderSystem.disableLighting();
@@ -164,7 +195,8 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 	}
 
 	@Override
-	public void drawOverlays(int mouseX, int mouseY) {
+	@SuppressWarnings("deprecation")
+	public void drawOverlays(MatrixStack matrixStack, int mouseX, int mouseY) {
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.disableLighting();
 		RenderSystem.enableAlphaTest();
@@ -172,29 +204,28 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 		final int recipeMouseX = mouseX - posX;
 		final int recipeMouseY = mouseY - posY;
 
-		GuiIngredient hoveredIngredient = null;
-		for (GuiIngredientGroup guiIngredientGroup : guiIngredientGroups.values()) {
+		GuiIngredient<?> hoveredIngredient = null;
+		for (GuiIngredientGroup<?> guiIngredientGroup : guiIngredientGroups.values()) {
 			hoveredIngredient = guiIngredientGroup.getHoveredIngredient(posX, posY, mouseX, mouseY);
 			if (hoveredIngredient != null) {
 				break;
 			}
 		}
 		if (recipeTransferButton != null) {
-			recipeTransferButton.drawToolTip(mouseX, mouseY);
+			recipeTransferButton.drawToolTip(matrixStack, mouseX, mouseY);
 		}
 		RenderSystem.disableBlend();
 		RenderSystem.disableLighting();
 
 		if (hoveredIngredient != null) {
-			hoveredIngredient.drawOverlays(posX, posY, recipeMouseX, recipeMouseY);
+			hoveredIngredient.drawOverlays(matrixStack, posX, posY, recipeMouseX, recipeMouseY);
 		} else if (isMouseOver(mouseX, mouseY)) {
-			@SuppressWarnings("unchecked")
-			List<String> tooltipStrings = recipeCategory.getTooltipStrings(recipe, recipeMouseX, recipeMouseY);
+			List<ITextComponent> tooltipStrings = recipeCategory.getTooltipStrings(recipe, recipeMouseX, recipeMouseY);
 			if (tooltipStrings.isEmpty() && shapelessIcon != null) {
 				tooltipStrings = shapelessIcon.getTooltipStrings(recipeMouseX, recipeMouseY);
 			}
 			if (tooltipStrings != null && !tooltipStrings.isEmpty()) {
-				TooltipRenderer.drawHoveringText(tooltipStrings, mouseX, mouseY);
+				TooltipRenderer.drawHoveringText(tooltipStrings, mouseX, mouseY, matrixStack);
 			}
 		}
 
@@ -232,7 +263,6 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 	}
 
 	public boolean handleClick(double mouseX, double mouseY, int mouseButton) {
-		//noinspection unchecked
 		return recipeCategory.handleClick(recipe, mouseX - posX, mouseY - posY, mouseButton);
 	}
 
@@ -247,18 +277,11 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 	}
 
 	@Override
-	public <T> IGuiIngredientGroup<T> getIngredientsGroup(IIngredientType<T> ingredientType) {
+	public <V> IGuiIngredientGroup<V> getIngredientsGroup(IIngredientType<V> ingredientType) {
 		@SuppressWarnings("unchecked")
-		GuiIngredientGroup<T> guiIngredientGroup = guiIngredientGroups.get(ingredientType);
+		GuiIngredientGroup<V> guiIngredientGroup = (GuiIngredientGroup<V>) guiIngredientGroups.get(ingredientType);
 		if (guiIngredientGroup == null) {
-			Focus<T> focus = null;
-			if (this.focus != null) {
-				Object focusValue = this.focus.getValue();
-				if (ingredientType.getIngredientClass().isInstance(focusValue)) {
-					//noinspection unchecked
-					focus = (Focus<T>) this.focus;
-				}
-			}
+			Focus<V> focus = getFocus(ingredientType);
 			guiIngredientGroup = new GuiIngredientGroup<>(ingredientType, focus, ingredientCycleOffset);
 			guiIngredientGroups.put(ingredientType, guiIngredientGroup);
 		}
@@ -285,12 +308,18 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 	}
 
 	@Nullable
+	@Override
+	public <V> Focus<V> getFocus(IIngredientType<V> ingredientType) {
+		return Focus.cast(this.focus, ingredientType);
+	}
+
+	@Nullable
 	public RecipeTransferButton getRecipeTransferButton() {
 		return recipeTransferButton;
 	}
 
 	@Override
-	public IRecipeCategory getRecipeCategory() {
+	public IRecipeCategory<?> getRecipeCategory() {
 		return recipeCategory;
 	}
 
@@ -300,5 +329,9 @@ public class RecipeLayout implements IRecipeLayoutDrawable {
 
 	public int getPosY() {
 		return posY;
+	}
+
+	public T getRecipe() {
+		return recipe;
 	}
 }

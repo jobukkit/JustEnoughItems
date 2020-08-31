@@ -1,7 +1,9 @@
 package mezz.jei.gui.ingredients;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +33,7 @@ public class GuiIngredientGroup<T> implements IGuiIngredientGroup<T> {
 
 	private final Map<Integer, GuiIngredient<T>> guiIngredients = new HashMap<>();
 	private final Set<Integer> inputSlots = new HashSet<>();
+	private final Set<Integer> outputSlots = new HashSet<>();
 	private final IIngredientHelper<T> ingredientHelper;
 	private final IIngredientRenderer<T> ingredientRenderer;
 	private final IIngredientType<T> ingredientType;
@@ -42,8 +45,7 @@ public class GuiIngredientGroup<T> implements IGuiIngredientGroup<T> {
 	@Nullable
 	private Focus<T> focus;
 
-	@Nullable
-	private ITooltipCallback<T> tooltipCallback;
+	private final List<ITooltipCallback<T>> tooltipCallbacks = new ArrayList<>();
 
 	public GuiIngredientGroup(IIngredientType<T> ingredientType, @Nullable Focus<T> focus, int cycleOffset) {
 		ErrorUtil.checkNotNull(ingredientType, "ingredientType");
@@ -67,6 +69,8 @@ public class GuiIngredientGroup<T> implements IGuiIngredientGroup<T> {
 		guiIngredients.put(slotIndex, guiIngredient);
 		if (input) {
 			inputSlots.add(slotIndex);
+		} else {
+			outputSlots.add(slotIndex);
 		}
 	}
 
@@ -131,7 +135,8 @@ public class GuiIngredientGroup<T> implements IGuiIngredientGroup<T> {
 
 	@Override
 	public void addTooltipCallback(ITooltipCallback<T> tooltipCallback) {
-		this.tooltipCallback = tooltipCallback;
+		ErrorUtil.checkNotNull(tooltipCallbacks, "tooltipCallback");
+		this.tooltipCallbacks.add(tooltipCallback);
 	}
 
 	@Override
@@ -149,12 +154,12 @@ public class GuiIngredientGroup<T> implements IGuiIngredientGroup<T> {
 		return null;
 	}
 
-	public void draw(int xOffset, int yOffset, int highlightColor, int mouseX, int mouseY) {
+	public void draw(MatrixStack matrixStack, int xOffset, int yOffset, int highlightColor, int mouseX, int mouseY) {
 		for (GuiIngredient<T> ingredient : guiIngredients.values()) {
-			ingredient.draw(xOffset, yOffset);
+			ingredient.draw(matrixStack, xOffset, yOffset);
 			if (ingredient.isMouseOver(xOffset, yOffset, mouseX, mouseY)) {
-				ingredient.setTooltipCallback(tooltipCallback);
-				ingredient.drawHighlight(highlightColor, xOffset, yOffset);
+				ingredient.setTooltipCallbacks(tooltipCallbacks);
+				ingredient.drawHighlight(matrixStack, highlightColor, xOffset, yOffset);
 			}
 		}
 	}
@@ -166,5 +171,9 @@ public class GuiIngredientGroup<T> implements IGuiIngredientGroup<T> {
 		} else {
 			this.focus = Focus.check(focus);
 		}
+	}
+
+	public Set<Integer> getOutputSlots() {
+		return outputSlots;
 	}
 }
