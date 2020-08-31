@@ -1,12 +1,11 @@
 package mezz.jei.gui.ghost;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 import java.util.List;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Rectangle2d;
 
@@ -35,14 +34,15 @@ public class GhostIngredientDrag<T> {
 		this.origin = origin;
 	}
 
-	public void drawTargets(MatrixStack matrixStack, int mouseX, int mouseY) {
+	public void drawTargets(int mouseX, int mouseY) {
 		if (handler.shouldHighlightTargets()) {
-			drawTargets(matrixStack, mouseX, mouseY, targets);
+			@SuppressWarnings("unchecked")
+			List<Target<Object>> targets = (List<Target<Object>>) (Object) this.targets;
+			drawTargets(mouseX, mouseY, targets);
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	public void drawItem(Minecraft minecraft, MatrixStack matrixStack, int mouseX, int mouseY) {
+	public void drawItem(Minecraft minecraft, int mouseX, int mouseY) {
 		if (origin != null) {
 			int originX = origin.getX() + (origin.getWidth() / 2);
 			int originY = origin.getY() + (origin.getHeight() / 2);
@@ -75,15 +75,14 @@ public class GhostIngredientDrag<T> {
 
 		ItemRenderer itemRenderer = minecraft.getItemRenderer();
 		itemRenderer.zLevel += 150.0F;
-		ingredientRenderer.render(matrixStack, mouseX - 8, mouseY - 8, ingredient);
+		ingredientRenderer.render(mouseX - 8, mouseY - 8, ingredient);
 		itemRenderer.zLevel -= 150.0F;
 	}
 
-	@SuppressWarnings("deprecation")
-	public static <V> void drawTargets(MatrixStack matrixStack, int mouseX, int mouseY, List<Target<V>> targets) {
+	public static void drawTargets(int mouseX, int mouseY, List<Target<Object>> targets) {
 		RenderSystem.disableLighting();
 		RenderSystem.disableDepthTest();
-		for (Target<?> target : targets) {
+		for (Target target : targets) {
 			Rectangle2d area = target.getArea();
 			int color;
 			if (MathUtil.contains(area, mouseX, mouseY)) {
@@ -91,7 +90,7 @@ public class GhostIngredientDrag<T> {
 			} else {
 				color = targetColor;
 			}
-			AbstractGui.fill(matrixStack, area.getX(), area.getY(), area.getX() + area.getWidth(), area.getY() + area.getHeight(), color);
+			Screen.fill(area.getX(), area.getY(), area.getX() + area.getWidth(), area.getY() + area.getHeight(), color);
 		}
 		RenderSystem.color4f(1f, 1f, 1f, 1f);
 	}

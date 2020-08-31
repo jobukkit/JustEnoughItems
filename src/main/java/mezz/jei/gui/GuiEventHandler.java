@@ -1,12 +1,9 @@
 package mezz.jei.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.client.event.GuiContainerEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -23,6 +20,7 @@ import mezz.jei.gui.overlay.IngredientListOverlay;
 import mezz.jei.gui.overlay.bookmarks.LeftAreaDispatcher;
 import mezz.jei.input.MouseUtil;
 import mezz.jei.util.LimitedLogger;
+import mezz.jei.util.Translator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,9 +79,8 @@ public class GuiEventHandler {
 		drawnOnBackground = true;
 		double mouseX = MouseUtil.getX();
 		double mouseY = MouseUtil.getY();
-		MatrixStack matrixStack = event.getMatrixStack();
-		ingredientListOverlay.drawScreen(minecraft, matrixStack, (int) mouseX, (int) mouseY, minecraft.getRenderPartialTicks());
-		leftAreaDispatcher.drawScreen(minecraft, matrixStack, (int) mouseX, (int) mouseY, minecraft.getRenderPartialTicks());
+		ingredientListOverlay.drawScreen(minecraft, (int) mouseX, (int) mouseY, minecraft.getRenderPartialTicks());
+		leftAreaDispatcher.drawScreen(minecraft, (int) mouseX, (int) mouseY, minecraft.getRenderPartialTicks());
 	}
 
 	/**
@@ -91,12 +88,12 @@ public class GuiEventHandler {
 	 */
 	@SubscribeEvent
 	public void onDrawForegroundEvent(GuiContainerEvent.DrawForeground event) {
-		ContainerScreen<?> gui = event.getGuiContainer();
+		ContainerScreen gui = event.getGuiContainer();
 		Minecraft minecraft = gui.getMinecraft();
 		if (minecraft == null) {
 			return;
 		}
-		ingredientListOverlay.drawOnForeground(minecraft, event.getMatrixStack(), gui, event.getMouseX(), event.getMouseY());
+		ingredientListOverlay.drawOnForeground(minecraft, gui, event.getMouseX(), event.getMouseY());
 		leftAreaDispatcher.drawOnForeground(gui, event.getMouseX(), event.getMouseY());
 	}
 
@@ -108,8 +105,6 @@ public class GuiEventHandler {
 			return;
 		}
 
-		MatrixStack matrixStack = event.getMatrixStack();
-
 		ingredientListOverlay.updateScreen(gui, false);
 		leftAreaDispatcher.updateScreen(gui, false);
 
@@ -118,25 +113,25 @@ public class GuiEventHandler {
 				String guiName = gui.getClass().getName();
 				missingBackgroundLogger.log(Level.WARN, guiName, "GUI did not draw the dark background layer behind itself, this may result in display issues: {}", guiName);
 			}
-			ingredientListOverlay.drawScreen(minecraft, matrixStack, event.getMouseX(), event.getMouseY(), minecraft.getRenderPartialTicks());
-			leftAreaDispatcher.drawScreen(minecraft, matrixStack, event.getMouseX(), event.getMouseY(), minecraft.getRenderPartialTicks());
+			ingredientListOverlay.drawScreen(minecraft, event.getMouseX(), event.getMouseY(), minecraft.getRenderPartialTicks());
+			leftAreaDispatcher.drawScreen(minecraft, event.getMouseX(), event.getMouseY(), minecraft.getRenderPartialTicks());
 		}
 		drawnOnBackground = false;
 
 		if (gui instanceof ContainerScreen) {
-			ContainerScreen<?> guiContainer = (ContainerScreen<?>) gui;
+			ContainerScreen guiContainer = (ContainerScreen) gui;
 			IGuiClickableArea guiClickableArea = guiScreenHelper.getGuiClickableArea(guiContainer, event.getMouseX() - guiContainer.getGuiLeft(), event.getMouseY() - guiContainer.getGuiTop());
 			if (guiClickableArea != null) {
-				List<ITextComponent> tooltipStrings = guiClickableArea.getTooltipStrings();
+				List<String> tooltipStrings = guiClickableArea.getTooltipStrings();
 				if (tooltipStrings.isEmpty()) {
-					tooltipStrings = Collections.singletonList(new TranslationTextComponent("jei.tooltip.show.recipes"));
+					tooltipStrings = Collections.singletonList(Translator.translateToLocal("jei.tooltip.show.recipes"));
 				}
-				TooltipRenderer.drawHoveringText(tooltipStrings, event.getMouseX(), event.getMouseY(), Constants.MAX_TOOLTIP_WIDTH, matrixStack);
+				TooltipRenderer.drawHoveringText(tooltipStrings, event.getMouseX(), event.getMouseY(), Constants.MAX_TOOLTIP_WIDTH);
 			}
 		}
 
-		ingredientListOverlay.drawTooltips(minecraft, matrixStack, event.getMouseX(), event.getMouseY());
-		leftAreaDispatcher.drawTooltips(minecraft, matrixStack, event.getMouseX(), event.getMouseY());
+		ingredientListOverlay.drawTooltips(minecraft, event.getMouseX(), event.getMouseY());
+		leftAreaDispatcher.drawTooltips(minecraft, event.getMouseX(), event.getMouseY());
 	}
 
 	@SubscribeEvent

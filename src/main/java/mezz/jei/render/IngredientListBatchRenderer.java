@@ -1,6 +1,5 @@
 package mezz.jei.render;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +32,7 @@ public class IngredientListBatchRenderer {
 
 	private final List<ItemStackFastRenderer> renderItems2d = new ArrayList<>();
 	private final List<ItemStackFastRenderer> renderItems3d = new ArrayList<>();
-	private final List<IngredientListElementRenderer<?>> renderOther = new ArrayList<>();
+	private final List<IngredientListElementRenderer> renderOther = new ArrayList<>();
 	private final IEditModeConfig editModeConfig;
 	private final IWorldConfig worldConfig;
 
@@ -100,7 +99,7 @@ public class IngredientListBatchRenderer {
 			ItemModelMesher itemModelMesher = Minecraft.getInstance().getItemRenderer().getItemModelMesher();
 			try {
 				bakedModel = itemModelMesher.getItemModel(itemStack);
-				bakedModel = bakedModel.getOverrides().func_239290_a_(bakedModel, itemStack, null, null);
+				bakedModel = bakedModel.getOverrides().getModelWithOverrides(bakedModel, itemStack, null, null);
 				Preconditions.checkNotNull(bakedModel, "IBakedModel must not be null.");
 			} catch (Throwable throwable) {
 				String stackInfo = ErrorUtil.getItemStackInfo(itemStack);
@@ -127,16 +126,16 @@ public class IngredientListBatchRenderer {
 
 	@Nullable
 	public ClickedIngredient<?> getIngredientUnderMouse(double mouseX, double mouseY) {
-		IngredientListElementRenderer<?> hovered = getHovered(mouseX, mouseY);
+		IngredientListElementRenderer hovered = getHovered(mouseX, mouseY);
 		if (hovered != null) {
-			IIngredientListElement<?> element = hovered.getElement();
+			IIngredientListElement element = hovered.getElement();
 			return ClickedIngredient.create(element.getIngredient(), hovered.getArea());
 		}
 		return null;
 	}
 
 	@Nullable
-	public IngredientListElementRenderer<?> getHovered(double mouseX, double mouseY) {
+	public IngredientListElementRenderer getHovered(double mouseX, double mouseY) {
 		for (IngredientListSlot slot : slots) {
 			if (slot.isMouseOver(mouseX, mouseY)) {
 				return slot.getIngredientRenderer();
@@ -148,8 +147,7 @@ public class IngredientListBatchRenderer {
 	/**
 	 * renders all ItemStacks
 	 */
-	@SuppressWarnings("deprecation")
-	public void render(Minecraft minecraft, MatrixStack matrixStack) {
+	public void render(Minecraft minecraft) {
 		RenderHelper.enableStandardItemLighting();
 
 		ItemRenderer itemRenderer = minecraft.getItemRenderer();
@@ -167,14 +165,14 @@ public class IngredientListBatchRenderer {
 		// 3d Items
 		RenderSystem.enableLighting();
 		for (ItemStackFastRenderer slot : renderItems3d) {
-			slot.renderItemAndEffectIntoGUI(matrixStack, editModeConfig, worldConfig);
+			slot.renderItemAndEffectIntoGUI(editModeConfig, worldConfig);
 		}
 
 		// 2d Items
 		RenderSystem.disableLighting();
 		RenderHelper.setupGuiFlatDiffuseLighting();
 		for (ItemStackFastRenderer slot : renderItems2d) {
-			slot.renderItemAndEffectIntoGUI(matrixStack, editModeConfig, worldConfig);
+			slot.renderItemAndEffectIntoGUI(editModeConfig, worldConfig);
 		}
 		RenderHelper.setupGui3DDiffuseLighting();
 
@@ -200,8 +198,8 @@ public class IngredientListBatchRenderer {
 		RenderSystem.disableLighting();
 
 		// other rendering
-		for (IngredientListElementRenderer<?> slot : renderOther) {
-			slot.renderSlow(matrixStack, editModeConfig, worldConfig);
+		for (IngredientListElementRenderer slot : renderOther) {
+			slot.renderSlow(editModeConfig, worldConfig);
 		}
 
 		RenderHelper.disableStandardItemLighting();

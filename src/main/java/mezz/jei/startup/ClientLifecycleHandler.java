@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Predicate;
 
-import mezz.jei.config.*;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.client.event.RecipesUpdatedEvent;
@@ -22,6 +23,14 @@ import mezz.jei.Internal;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.constants.ModIds;
 import mezz.jei.api.helpers.IModIdHelper;
+import mezz.jei.config.BookmarkConfig;
+import mezz.jei.config.ClientConfig;
+import mezz.jei.config.EditModeConfig;
+import mezz.jei.config.IEditModeConfig;
+import mezz.jei.config.IngredientFilterConfig;
+import mezz.jei.config.KeyBindings;
+import mezz.jei.config.ModIdFormattingConfig;
+import mezz.jei.config.WorldConfig;
 import mezz.jei.events.EventBusHelper;
 import mezz.jei.events.PlayerJoinedWorldEvent;
 import mezz.jei.gui.overlay.IngredientListOverlay;
@@ -45,7 +54,8 @@ public class ClientLifecycleHandler {
 	private final IModIdHelper modIdHelper;
 	private final IEditModeConfig editModeConfig;
 
-	public ClientLifecycleHandler(NetworkHandler networkHandler, Textures textures) {
+	public ClientLifecycleHandler(NetworkHandler networkHandler, Textures textures,
+			ClientConfig clientConfig, IngredientFilterConfig ingredientFilterConfig, ModIdFormattingConfig modIdFormattingConfig, ForgeModIdHelper modIdHelper) {
 		File jeiConfigurationDir = new File(FMLPaths.CONFIGDIR.get().toFile(), ModIds.JEI_ID);
 		if (!jeiConfigurationDir.exists()) {
 			try {
@@ -57,12 +67,11 @@ public class ClientLifecycleHandler {
 			}
 		}
 
-		this.clientConfig = JEIClientConfig.clientConfig;
-		this.ingredientFilterConfig = JEIClientConfig.filterConfig;
-		this.modIdFormattingConfig = JEIClientConfig.modNameFormat;
-		this.modIdHelper = new ForgeModIdHelper(clientConfig, modIdFormattingConfig);
+		this.clientConfig = clientConfig;
+		this.ingredientFilterConfig = ingredientFilterConfig;
+		this.modIdFormattingConfig = modIdFormattingConfig;
+		this.modIdHelper = modIdHelper;
 
-		// Additional config files
 		bookmarkConfig = new BookmarkConfig(jeiConfigurationDir);
 		worldConfig = new WorldConfig(jeiConfigurationDir);
 		editModeConfig = new EditModeConfig(jeiConfigurationDir);
@@ -72,6 +81,25 @@ public class ClientLifecycleHandler {
 
 		KeyBindings.init();
 
+		clientConfig.onPreInit();
+		EventBusHelper.addListener(ModConfig.Reloading.class, event -> {
+			modIdFormattingConfig.checkForModNameFormatOverride();
+			if (ModIds.JEI_ID.equals(event.getConfig().getModId())) {
+				if (clientConfig.syncAllConfig()) {
+					// todo
+				}
+				if (ingredientFilterConfig.syncConfig()) {
+					JeiRuntime runtime = Internal.getRuntime();
+					if (runtime != null) {
+						IngredientListOverlay ingredientListOverlay = runtime.getIngredientListOverlay();
+						ingredientListOverlay.rebuildIngredientFilter();
+					}
+				}
+				if (worldConfig.syncConfig()) {
+					// todo
+				}
+			}
+		});
 		EventBusHelper.addListener(WorldEvent.Save.class, event -> worldConfig.onWorldSave());
 		EventBusHelper.addListener(RecipesUpdatedEvent.class, event -> {
 			ClientPlayNetHandler connection = Minecraft.getInstance().getConnection();

@@ -3,7 +3,6 @@ package mezz.jei.gui.overlay.bookmarks;
 import java.util.List;
 
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -13,7 +12,7 @@ import mezz.jei.config.IWorldConfig;
 import mezz.jei.config.KeyBindings;
 import mezz.jei.gui.elements.GuiIconToggleButton;
 import mezz.jei.gui.textures.Textures;
-import net.minecraft.util.text.TranslationTextComponent;
+import mezz.jei.util.Translator;
 import org.lwjgl.glfw.GLFW;
 
 public class BookmarkButton extends GuiIconToggleButton {
@@ -35,18 +34,15 @@ public class BookmarkButton extends GuiIconToggleButton {
 	}
 
 	@Override
-	protected void getTooltips(List<ITextComponent> tooltip) {
-		tooltip.add(new TranslationTextComponent("jei.tooltip.bookmarks"));
+	protected void getTooltips(List<String> tooltip) {
+		tooltip.add(Translator.translateToLocal("jei.tooltip.bookmarks"));
 		KeyBinding bookmarkKey = KeyBindings.bookmark;
 		if (bookmarkKey.getKey().getKeyCode() == GLFW.GLFW_KEY_UNKNOWN) {
-			TranslationTextComponent noKey = new TranslationTextComponent("jei.tooltip.bookmarks.usage.nokey");
-			tooltip.add(noKey.mergeStyle(TextFormatting.RED));
+			tooltip.add(TextFormatting.RED + Translator.translateToLocal("jei.tooltip.bookmarks.usage.nokey"));
 		} else if (!bookmarkOverlay.hasRoom()) {
-			TranslationTextComponent notEnoughSpace = new TranslationTextComponent("jei.tooltip.bookmarks.not.enough.space");
-			tooltip.add(notEnoughSpace.mergeStyle(TextFormatting.GOLD));
+			tooltip.add(TextFormatting.GOLD + Translator.translateToLocal("jei.tooltip.bookmarks.not.enough.space"));
 		} else {
-			TranslationTextComponent key = new TranslationTextComponent("jei.tooltip.bookmarks.usage.key", new TranslationTextComponent(bookmarkKey.getTranslationKey()));
-			tooltip.add(key.mergeStyle(TextFormatting.GRAY));
+			tooltip.add(TextFormatting.GRAY + Translator.translateToLocalFormatted("jei.tooltip.bookmarks.usage.key", bookmarkKey.getLocalizedName()));
 		}
 	}
 

@@ -1,6 +1,5 @@
 package mezz.jei.api.recipe.category;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,7 +12,6 @@ import mezz.jei.api.gui.ingredient.IGuiIngredientGroup;
 import mezz.jei.api.gui.ingredient.ITooltipCallback;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
-import net.minecraft.util.text.ITextComponent;
 
 /**
  * Defines a category of recipe, (i.e. Crafting Table Recipe, Furnace Recipe).
@@ -79,7 +77,7 @@ public interface IRecipeCategory<T> {
 	 * @see IDrawable for a simple class for drawing things.
 	 * @see IGuiHelper for useful functions.
 	 */
-	default void draw(T recipe, MatrixStack matrixStack, double mouseX, double mouseY) {
+	default void draw(T recipe, double mouseX, double mouseY) {
 
 	}
 
@@ -93,7 +91,7 @@ public interface IRecipeCategory<T> {
 	 * @param mouseY the Y position of the mouse, relative to the recipe.
 	 * @return tooltip strings. If there is no tooltip at this position, return an empty list.
 	 */
-	default List<ITextComponent> getTooltipStrings(T recipe, double mouseX, double mouseY) {
+	default List<String> getTooltipStrings(T recipe, double mouseX, double mouseY) {
 		return Collections.emptyList();
 	}
 

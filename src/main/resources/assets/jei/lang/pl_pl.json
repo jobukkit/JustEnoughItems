@@ -4,8 +4,8 @@
   "jei.tooltip.show.recipes": "Pokaż receptury",
   "jei.tooltip.show.all.recipes": "Pokaż wszystkie receptury",
   "jei.tooltip.delete.item": "Kliknij, aby usunąć",
-  "jei.tooltip.liquid.amount.with.capacity": "%s / %s mB",
-  "jei.tooltip.liquid.amount": "%s mB",
+  "jei.tooltip.liquid.amount.with.capacity": "%,d / %,d mB",
+  "jei.tooltip.liquid.amount": "%,d mB",
   "jei.tooltip.transfer": "Przenieś przedmioty",
   "jei.tooltip.recipe.tag": "Akceptuje: %s",
   "jei.tooltip.item.colors": "Kolory: %s",
@@ -50,7 +50,6 @@
   "key.jei.toggleBookmarkOverlay": "Pokaż/ukryj składniki dodane do zakładek",
 
   "_comment": "Config",
-  "config.jei": "Konfiguracja JEI",
   "config.jei.default": "Domyślne",
   "config.jei.valid": "Poprawne",
   "config.jei.title": "Konfiguracja %MODNAME",
@@ -80,7 +79,6 @@
   "config.jei.search.colorSearchMode.comment": "Tryb wyszukiwania po kolorach (prefiks: ^)",
   "config.jei.search.resourceIdSearchMode": "&IdZasobu",
   "config.jei.search.resourceIdSearchMode.comment": "Tryb wyszukiwania po ID zasobów (prefiks: &)",
-  "config.jei.search.searchAdvancedTooltips": "Search advanced tooltips",
   "config.jei.advanced": "Zaawansowane",
   "config.jei.advanced.comment": "Zaawansowane opcje konfiguracyjne do zmiany sposobu, w jaki funkcjonuje JEI.",
   "config.jei.advanced.itemBlacklist": "Czarna lista składników",
@@ -125,9 +123,6 @@
   "gui.jei.category.brewing": "Warzenie",
   "gui.jei.category.brewing.steps": "Kroków: %s",
   "gui.jei.category.itemInformation": "Informacja",
-
-  "_comment": "Messages",
-  "jei.message.ftbguilib": "Install FTB GUI Library to access ingame config",
 
   "_comment": "DEBUG (for debug mode, do not need translation)",
   "description.jei.wooden.door.1": "Wooden Doors allow you to block monsters from entering your building.\\nTesting sentences.",

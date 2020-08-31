@@ -9,7 +9,6 @@ import net.minecraft.util.ResourceLocation;
 
 import mezz.jei.api.recipe.IFocusFactory;
 import mezz.jei.api.runtime.IRecipesGui;
-import net.minecraft.util.text.ITextComponent;
 
 public interface IGuiClickableArea {
 	/**
@@ -23,7 +22,7 @@ public interface IGuiClickableArea {
 	 * Returns the strings to be shown on the tooltip when this area is hovered over.
 	 * Return an empty list to display the default "Show Recipes" message.
 	 */
-	default List<ITextComponent> getTooltipStrings() {
+	default List<String> getTooltipStrings() {
 		return Collections.emptyList();
 	}
 

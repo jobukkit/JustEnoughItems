@@ -1,12 +1,12 @@
 package mezz.jei.gui.ingredients;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -18,10 +18,9 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.ITagCollection;
-import net.minecraft.tags.ITag;
+import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagCollection;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 
 import mezz.jei.Internal;
@@ -38,7 +37,7 @@ import mezz.jei.ingredients.IngredientFilter;
 import mezz.jei.ingredients.IngredientManager;
 import mezz.jei.render.IngredientRenderHelper;
 import mezz.jei.util.ErrorUtil;
-import net.minecraft.util.text.TranslationTextComponent;
+import mezz.jei.util.Translator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,7 +56,8 @@ public class GuiIngredient<T> extends AbstractGui implements IGuiIngredient<T> {
 	private final List<T> allIngredients = new ArrayList<>(); // all ingredients, ignoring focus
 	private final IIngredientRenderer<T> ingredientRenderer;
 	private final IIngredientHelper<T> ingredientHelper;
-	private List<ITooltipCallback<T>> tooltipCallbacks = Collections.emptyList();
+	@Nullable
+	private ITooltipCallback<T> tooltipCallback;
 	@Nullable
 	private IDrawable background;
 
@@ -162,20 +162,20 @@ public class GuiIngredient<T> extends AbstractGui implements IGuiIngredient<T> {
 		return null;
 	}
 
-	public void setTooltipCallbacks(List<ITooltipCallback<T>> tooltipCallbacks) {
-		this.tooltipCallbacks = tooltipCallbacks;
+	public void setTooltipCallback(@Nullable ITooltipCallback<T> tooltipCallback) {
+		this.tooltipCallback = tooltipCallback;
 	}
 
-	public void draw(MatrixStack matrixStack, int xOffset, int yOffset) {
+	public void draw(int xOffset, int yOffset) {
 		cycleTimer.onDraw();
 
 		if (background != null) {
-			background.draw(matrixStack, xOffset + rect.getX(), yOffset + rect.getY());
+			background.draw(xOffset + rect.getX(), yOffset + rect.getY());
 		}
 
 		T value = getDisplayedIngredient();
 		try {
-			ingredientRenderer.render(matrixStack, xOffset + rect.getX() + xPadding, yOffset + rect.getY() + yPadding, value);
+			ingredientRenderer.render(xOffset + rect.getX() + xPadding, yOffset + rect.getY() + yPadding, value);
 		} catch (RuntimeException | LinkageError e) {
 			if (value != null) {
 				throw ErrorUtil.createRenderIngredientException(e, value);
@@ -185,31 +185,28 @@ public class GuiIngredient<T> extends AbstractGui implements IGuiIngredient<T> {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
-	public void drawHighlight(MatrixStack matrixStack, int color, int xOffset, int yOffset) {
+	public void drawHighlight(int color, int xOffset, int yOffset) {
 		int x = rect.getX() + xOffset + xPadding;
 		int y = rect.getY() + yOffset + yPadding;
 		RenderSystem.disableLighting();
 		RenderSystem.disableDepthTest();
-		fill(matrixStack, x, y, x + rect.getWidth() - xPadding * 2, y + rect.getHeight() - yPadding * 2, color);
+		fill(x, y, x + rect.getWidth() - xPadding * 2, y + rect.getHeight() - yPadding * 2, color);
 		RenderSystem.color4f(1f, 1f, 1f, 1f);
 	}
 
-	public void drawOverlays(MatrixStack matrixStack, int xOffset, int yOffset, int mouseX, int mouseY) {
+	public void drawOverlays(int xOffset, int yOffset, int mouseX, int mouseY) {
 		T value = getDisplayedIngredient();
 		if (value != null) {
-			drawTooltip(matrixStack, xOffset, yOffset, mouseX, mouseY, value);
+			drawTooltip(xOffset, yOffset, mouseX, mouseY, value);
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	private void drawTooltip(MatrixStack matrixStack, int xOffset, int yOffset, int mouseX, int mouseY, T value) {
+	private void drawTooltip(int xOffset, int yOffset, int mouseX, int mouseY, T value) {
 		try {
 			RenderSystem.disableDepthTest();
 
 			RenderHelper.disableStandardItemLighting();
-			fill(matrixStack,
-				xOffset + rect.getX() + xPadding,
+			fill(xOffset + rect.getX() + xPadding,
 				yOffset + rect.getY() + yPadding,
 				xOffset + rect.getX() + rect.getWidth() - xPadding,
 				yOffset + rect.getY() + rect.getHeight() - yPadding,
@@ -217,8 +214,8 @@ public class GuiIngredient<T> extends AbstractGui implements IGuiIngredient<T> {
 			RenderSystem.color4f(1f, 1f, 1f, 1f);
 
 			IModIdHelper modIdHelper = Internal.getHelpers().getModIdHelper();
-			List<ITextComponent> tooltip = IngredientRenderHelper.getIngredientTooltipSafe(value, ingredientRenderer, ingredientHelper, modIdHelper);
-			for (ITooltipCallback<T> tooltipCallback : this.tooltipCallbacks) {
+			List<String> tooltip = IngredientRenderHelper.getIngredientTooltipSafe(value, ingredientRenderer, ingredientHelper, modIdHelper);
+			if (tooltipCallback != null) {
 				tooltipCallback.onTooltip(slotIndex, input, value, tooltip);
 			}
 
@@ -229,11 +226,11 @@ public class GuiIngredient<T> extends AbstractGui implements IGuiIngredient<T> {
 				Collection<ItemStack> itemStacks = (Collection<ItemStack>) this.allIngredients;
 				ResourceLocation tagEquivalent = getTagEquivalent(itemStacks);
 				if (tagEquivalent != null) {
-					final TranslationTextComponent acceptsAny = new TranslationTextComponent("jei.tooltip.recipe.tag", tagEquivalent);
-					tooltip.add(acceptsAny.mergeStyle(TextFormatting.GRAY));
+					final String acceptsAny = Translator.translateToLocalFormatted("jei.tooltip.recipe.tag", tagEquivalent);
+					tooltip.add(TextFormatting.GRAY + acceptsAny);
 				}
 			}
-			TooltipRenderer.drawHoveringText(value, tooltip, xOffset + mouseX, yOffset + mouseY, fontRenderer, matrixStack);
+			TooltipRenderer.drawHoveringText(value, tooltip, xOffset + mouseX, yOffset + mouseY, fontRenderer);
 
 			RenderSystem.enableDepthTest();
 		} catch (RuntimeException e) {
@@ -247,16 +244,16 @@ public class GuiIngredient<T> extends AbstractGui implements IGuiIngredient<T> {
 			return null;
 		}
 
-		List<Item> items = itemStacks.stream()
+		Set<Item> items = itemStacks.stream()
 			.filter(Objects::nonNull)
 			.map(ItemStack::getItem)
-			.collect(Collectors.toList());
+			.collect(Collectors.toSet());
 
-		ITagCollection<Item> collection = ItemTags.getCollection();
-		Collection<ITag<Item>> tags = collection.func_241833_a().values();
-		for (ITag<Item> tag : tags) {
+		TagCollection<Item> collection = ItemTags.getCollection();
+		Collection<Tag<Item>> tags = collection.getTagMap().values();
+		for (Tag<Item> tag : tags) {
 			if (tag.getAllElements().equals(items)) {
-				return collection.func_232973_a_(tag);
+				return tag.getId();
 			}
 		}
 		return null;

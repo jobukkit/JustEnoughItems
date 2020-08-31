@@ -5,23 +5,22 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.DisplayEffectsScreen;
 import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.inventory.container.Container;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 
 import com.google.common.collect.Ordering;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 
-class InventoryEffectRendererGuiHandler<T extends Container> implements IGuiContainerHandler<DisplayEffectsScreen<T>> {
+class InventoryEffectRendererGuiHandler implements IGuiContainerHandler<DisplayEffectsScreen> {
 	/**
 	 * Modeled after {@link DisplayEffectsScreen#drawActivePotionEffects()}
 	 */
 	@Override
-	public List<Rectangle2d> getGuiExtraAreas(DisplayEffectsScreen<T> containerScreen) {
+	public List<Rectangle2d> getGuiExtraAreas(DisplayEffectsScreen containerScreen) {
 		Minecraft minecraft = containerScreen.getMinecraft();
 		if (minecraft == null) {
 			return Collections.emptyList();

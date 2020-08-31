@@ -5,11 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.ItemTier;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -103,23 +102,22 @@ public final class AnvilRecipeMaker {
 	}
 
 	private static void getRepairRecipes(List<Object> recipes, IVanillaRecipeFactory vanillaRecipeFactory) {
-		Map<Ingredient, List<ItemStack>> items = Maps.newHashMap();
+		Map<List<ItemStack>, List<ItemStack>> items = Maps.newHashMap();
 
-		Ingredient repairWoods = ItemTier.WOOD.getRepairMaterial();
+		List<ItemStack> repairWoods = ItemTags.PLANKS.getAllElements().stream()
+			.map(ItemStack::new)
+			.collect(Collectors.toList());
 		items.put(repairWoods, Lists.newArrayList(
 			new ItemStack(Items.WOODEN_SWORD),
 			new ItemStack(Items.WOODEN_PICKAXE),
 			new ItemStack(Items.WOODEN_AXE),
 			new ItemStack(Items.WOODEN_SHOVEL),
-			new ItemStack(Items.WOODEN_HOE)
-		));
-
-		Ingredient repairShields = Ingredient.fromTag(ItemTags.PLANKS);
-		items.put(repairShields, Lists.newArrayList(
+			new ItemStack(Items.WOODEN_HOE),
 			new ItemStack(Items.SHIELD)
 		));
 
-		items.put(ItemTier.STONE.getRepairMaterial(), Lists.newArrayList(
+		ItemStack repairStone = new ItemStack(Blocks.COBBLESTONE);
+		items.put(Collections.singletonList(repairStone), Lists.newArrayList(
 			new ItemStack(Items.STONE_SWORD),
 			new ItemStack(Items.STONE_PICKAXE),
 			new ItemStack(Items.STONE_AXE),
@@ -127,105 +125,66 @@ public final class AnvilRecipeMaker {
 			new ItemStack(Items.STONE_HOE)
 		));
 
-		Ingredient repairLeather = ArmorMaterial.LEATHER.getRepairMaterial();
-		items.put(repairLeather, Lists.newArrayList(
+		ItemStack repairLeather = new ItemStack(Items.LEATHER);
+		items.put(Collections.singletonList(repairLeather), Lists.newArrayList(
 			new ItemStack(Items.LEATHER_HELMET),
 			new ItemStack(Items.LEATHER_CHESTPLATE),
 			new ItemStack(Items.LEATHER_LEGGINGS),
 			new ItemStack(Items.LEATHER_BOOTS)
 		));
 
-		Ingredient repairIronItems = ItemTier.IRON.getRepairMaterial();
-		items.put(repairIronItems, Lists.newArrayList(
+
+		ItemStack repairIron = new ItemStack(Items.IRON_INGOT);
+		items.put(Collections.singletonList(repairIron), Lists.newArrayList(
 			new ItemStack(Items.IRON_SWORD),
 			new ItemStack(Items.IRON_PICKAXE),
 			new ItemStack(Items.IRON_AXE),
 			new ItemStack(Items.IRON_SHOVEL),
-			new ItemStack(Items.IRON_HOE)
-		));
-
-		Ingredient repairIronArmor = ArmorMaterial.IRON.getRepairMaterial();
-		items.put(repairIronArmor, Lists.newArrayList(
+			new ItemStack(Items.IRON_HOE),
 			new ItemStack(Items.IRON_HELMET),
 			new ItemStack(Items.IRON_CHESTPLATE),
 			new ItemStack(Items.IRON_LEGGINGS),
-			new ItemStack(Items.IRON_BOOTS)
-		));
-
-		Ingredient repairChain = ArmorMaterial.CHAIN.getRepairMaterial();
-		items.put(repairChain, Lists.newArrayList(
+			new ItemStack(Items.IRON_BOOTS),
 			new ItemStack(Items.CHAINMAIL_HELMET),
 			new ItemStack(Items.CHAINMAIL_CHESTPLATE),
 			new ItemStack(Items.CHAINMAIL_LEGGINGS),
 			new ItemStack(Items.CHAINMAIL_BOOTS)
 		));
 
-		Ingredient repairGoldItems = ItemTier.GOLD.getRepairMaterial();
-		items.put(repairGoldItems, Lists.newArrayList(
+		ItemStack repairGold = new ItemStack(Items.GOLD_INGOT);
+		items.put(Collections.singletonList(repairGold), Lists.newArrayList(
 			new ItemStack(Items.GOLDEN_SWORD),
 			new ItemStack(Items.GOLDEN_PICKAXE),
 			new ItemStack(Items.GOLDEN_AXE),
 			new ItemStack(Items.GOLDEN_SHOVEL),
-			new ItemStack(Items.GOLDEN_HOE)
-		));
-
-		Ingredient repairGoldArmor = ArmorMaterial.GOLD.getRepairMaterial();
-		items.put(repairGoldArmor, Lists.newArrayList(
+			new ItemStack(Items.GOLDEN_HOE),
 			new ItemStack(Items.GOLDEN_HELMET),
 			new ItemStack(Items.GOLDEN_CHESTPLATE),
 			new ItemStack(Items.GOLDEN_LEGGINGS),
 			new ItemStack(Items.GOLDEN_BOOTS)
 		));
 
-		Ingredient repairDiamondItems = ItemTier.DIAMOND.getRepairMaterial();
-		items.put(repairDiamondItems, Lists.newArrayList(
+		ItemStack repairDiamond = new ItemStack(Items.DIAMOND);
+		items.put(Collections.singletonList(repairDiamond), Lists.newArrayList(
 			new ItemStack(Items.DIAMOND_SWORD),
 			new ItemStack(Items.DIAMOND_PICKAXE),
 			new ItemStack(Items.DIAMOND_AXE),
 			new ItemStack(Items.DIAMOND_SHOVEL),
-			new ItemStack(Items.DIAMOND_HOE)
-		));
-
-		Ingredient repairDiamondArmor = ArmorMaterial.DIAMOND.getRepairMaterial();
-		items.put(repairDiamondArmor, Lists.newArrayList(
+			new ItemStack(Items.DIAMOND_HOE),
 			new ItemStack(Items.DIAMOND_HELMET),
 			new ItemStack(Items.DIAMOND_CHESTPLATE),
 			new ItemStack(Items.DIAMOND_LEGGINGS),
 			new ItemStack(Items.DIAMOND_BOOTS)
 		));
 
-		Ingredient repairNetheriteItems = ItemTier.NETHERITE.getRepairMaterial();
-		items.put(repairNetheriteItems, Lists.newArrayList(
-			new ItemStack(Items.NETHERITE_SWORD),
-			new ItemStack(Items.NETHERITE_AXE),
-			new ItemStack(Items.NETHERITE_HOE),
-			new ItemStack(Items.NETHERITE_SHOVEL),
-			new ItemStack(Items.NETHERITE_PICKAXE)
-		));
-
-		Ingredient repairNetheriteArmor = ArmorMaterial.NETHERITE.getRepairMaterial();
-		items.put(repairNetheriteArmor, Lists.newArrayList(
-			new ItemStack(Items.NETHERITE_BOOTS),
-			new ItemStack(Items.NETHERITE_HELMET),
-			new ItemStack(Items.NETHERITE_LEGGINGS),
-			new ItemStack(Items.NETHERITE_CHESTPLATE)
-		));
-
-		Ingredient repairElytra = Ingredient.fromItems(Items.PHANTOM_MEMBRANE);
-		items.put(repairElytra, Lists.newArrayList(
+		ItemStack repairElytra = new ItemStack(Items.PHANTOM_MEMBRANE);
+		items.put(Collections.singletonList(repairElytra), Lists.newArrayList(
 			new ItemStack(Items.ELYTRA)
 		));
 
-		Ingredient repairTurtle = ArmorMaterial.TURTLE.getRepairMaterial();
-		items.put(repairTurtle, Lists.newArrayList(
-			new ItemStack(Items.TURTLE_HELMET)
-		));
+		for (Map.Entry<List<ItemStack>, List<ItemStack>> entry : items.entrySet()) {
 
-		for (Map.Entry<Ingredient, List<ItemStack>> entry : items.entrySet()) {
-
-			List<ItemStack> repairMaterials = Lists.newArrayList(
-				entry.getKey().getMatchingStacks()
-			);
+			List<ItemStack> repairMaterials = entry.getKey();
 
 			for (ItemStack ingredient : entry.getValue()) {
 
@@ -236,11 +195,9 @@ public final class AnvilRecipeMaker {
 				ItemStack damaged3 = ingredient.copy();
 				damaged3.setDamage(damaged3.getMaxDamage() * 2 / 4);
 
-				if (!repairMaterials.isEmpty()) {
-					Object repairWithMaterial = vanillaRecipeFactory.createAnvilRecipe(damaged1, repairMaterials, Collections.singletonList(damaged2));
-					recipes.add(repairWithMaterial);
-				}
+				Object repairWithMaterial = vanillaRecipeFactory.createAnvilRecipe(damaged1, repairMaterials, Collections.singletonList(damaged2));
 				Object repairWithSame = vanillaRecipeFactory.createAnvilRecipe(damaged2, Collections.singletonList(damaged2), Collections.singletonList(damaged3));
+				recipes.add(repairWithMaterial);
 				recipes.add(repairWithSame);
 			}
 		}

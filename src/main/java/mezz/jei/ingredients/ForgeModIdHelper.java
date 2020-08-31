@@ -3,8 +3,6 @@ package mezz.jei.ingredients;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.ModList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
@@ -57,15 +55,12 @@ public class ForgeModIdHelper extends AbstractModIdHelper {
 	}
 
 	@Override
-	public <T> List<ITextComponent> addModNameToIngredientTooltip(List<ITextComponent> tooltip, T ingredient, IIngredientHelper<T> ingredientHelper) {
+	public <T> List<String> addModNameToIngredientTooltip(List<String> tooltip, T ingredient, IIngredientHelper<T> ingredientHelper) {
 		if (config.isDebugModeEnabled() && Minecraft.getInstance().gameSettings.advancedItemTooltips) {
 			tooltip = new ArrayList<>(tooltip);
-			StringTextComponent jeiDebug = new StringTextComponent("JEI Debug:");
-			StringTextComponent info = new StringTextComponent("info: " + ingredientHelper.getErrorInfo(ingredient));
-			StringTextComponent uid = new StringTextComponent("uid: " + ingredientHelper.getUniqueId(ingredient));
-			tooltip.add(jeiDebug.mergeStyle(TextFormatting.GRAY));
-			tooltip.add(info.mergeStyle(TextFormatting.GRAY));
-			tooltip.add(uid.mergeStyle(TextFormatting.GRAY));
+			tooltip.add(TextFormatting.GRAY + "JEI Debug:");
+			tooltip.add(TextFormatting.GRAY + "info: " + ingredientHelper.getErrorInfo(ingredient));
+			tooltip.add(TextFormatting.GRAY + "uid: " + ingredientHelper.getUniqueId(ingredient));
 		}
 		if (modIdFormattingConfig.isModNameFormatOverrideActive() && (ingredient instanceof ItemStack)) {
 			// we detected that another mod is adding the mod name already

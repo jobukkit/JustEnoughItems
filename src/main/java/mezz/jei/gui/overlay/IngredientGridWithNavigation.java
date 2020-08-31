@@ -1,6 +1,5 @@
 package mezz.jei.gui.overlay;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +59,7 @@ public class IngredientGridWithNavigation implements IShowsRecipeFocuses, IMouse
 	) {
 		this.filterTextSource = filterTextSource;
 		this.worldConfig = worldConfig;
-		this.ingredientGrid = new IngredientGrid(alignment, editModeConfig, ingredientFilterConfig, worldConfig, guiScreenHelper);
+		this.ingredientGrid = new IngredientGrid(alignment, editModeConfig, ingredientFilterConfig, worldConfig);
 		this.ingredientSource = ingredientSource;
 		this.guiScreenHelper = guiScreenHelper;
 		this.pageDelegate = new IngredientGridPaged();
@@ -110,13 +109,13 @@ public class IngredientGridWithNavigation implements IShowsRecipeFocuses, IMouse
 		return this.area;
 	}
 
-	public void draw(Minecraft minecraft, MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		this.ingredientGrid.draw(minecraft, matrixStack, mouseX, mouseY);
-		this.navigation.draw(minecraft, matrixStack, mouseX, mouseY, partialTicks);
+	public void draw(Minecraft minecraft, int mouseX, int mouseY, float partialTicks) {
+		this.ingredientGrid.draw(minecraft, mouseX, mouseY);
+		this.navigation.draw(minecraft, mouseX, mouseY, partialTicks);
 	}
 
-	public void drawTooltips(Minecraft minecraft, MatrixStack matrixStack, int mouseX, int mouseY) {
-		this.ingredientGrid.drawTooltips(minecraft, matrixStack, mouseX, mouseY);
+	public void drawTooltips(Minecraft minecraft, int mouseX, int mouseY) {
+		this.ingredientGrid.drawTooltips(minecraft, mouseX, mouseY);
 	}
 
 	@Override
@@ -193,7 +192,7 @@ public class IngredientGridWithNavigation implements IShowsRecipeFocuses, IMouse
 
 	@Nullable
 	@Override
-	public IIngredientListElement<?> getElementUnderMouse() {
+	public IIngredientListElement getElementUnderMouse() {
 		return this.ingredientGrid.getElementUnderMouse();
 	}
 
@@ -202,10 +201,10 @@ public class IngredientGridWithNavigation implements IShowsRecipeFocuses, IMouse
 		return this.ingredientGrid.canSetFocusWithMouse();
 	}
 
-	public List<IIngredientListElement<?>> getVisibleElements() {
-		List<IIngredientListElement<?>> visibleElements = new ArrayList<>();
+	public List<IIngredientListElement> getVisibleElements() {
+		List<IIngredientListElement> visibleElements = new ArrayList<>();
 		for (IngredientListSlot slot : this.ingredientGrid.guiIngredientSlots.getAllGuiIngredientSlots()) {
-			IngredientListElementRenderer<?> renderer = slot.getIngredientRenderer();
+			IngredientListElementRenderer renderer = slot.getIngredientRenderer();
 			if (renderer != null) {
 				visibleElements.add(renderer.getElement());
 			}

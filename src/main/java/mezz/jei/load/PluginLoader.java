@@ -3,7 +3,6 @@ package mezz.jei.load;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import mezz.jei.ingredients.RegisteredIngredient;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 
@@ -58,7 +57,7 @@ public class PluginLoader {
 	private final BookmarkConfig bookmarkConfig;
 	private final RecipeTransferRegistration recipeTransferRegistration;
 	private final GuiHandlerRegistration guiHandlerRegistration;
-	private final ImmutableList<IRecipeCategory<?>> recipeCategories;
+	private final ImmutableList<IRecipeCategory> recipeCategories;
 	private final ImmutableListMultimap<ResourceLocation, Object> recipeCatalysts;
 	private final ImmutableListMultimap<ResourceLocation, Object> recipes;
 	private final ImmutableList<IRecipeManagerPlugin> recipeManagerPlugins;
@@ -92,8 +91,7 @@ public class PluginLoader {
 
 		ModIngredientRegistration modIngredientManager = new ModIngredientRegistration(subtypeManager);
 		PluginCaller.callOnPlugins("Registering ingredients", plugins, p -> p.registerIngredients(modIngredientManager));
-		List<RegisteredIngredient<?>> registeredIngredients = modIngredientManager.getRegisteredIngredients();
-		ingredientManager =  new IngredientManager(modIdHelper, blacklist, registeredIngredients, debugMode);
+		ingredientManager = modIngredientManager.createIngredientManager(modIdHelper, blacklist, debugMode);
 		Internal.setIngredientManager(ingredientManager);
 
 		StackHelper stackHelper = new StackHelper(subtypeManager);
@@ -112,7 +110,7 @@ public class PluginLoader {
 		ErrorUtil.checkNotNull(craftingCategory, "vanilla crafting category");
 		VanillaCategoryExtensionRegistration vanillaCategoryExtensionRegistration = new VanillaCategoryExtensionRegistration(craftingCategory);
 		PluginCaller.callOnPlugins("Registering vanilla category extensions", plugins, p -> p.registerVanillaCategoryExtensions(vanillaCategoryExtensionRegistration));
-		ImmutableMap<ResourceLocation, IRecipeCategory<?>> recipeCategoriesByUid = recipeCategoryRegistration.getRecipeCategoriesByUid();
+		ImmutableMap<ResourceLocation, IRecipeCategory> recipeCategoriesByUid = recipeCategoryRegistration.getRecipeCategoriesByUid();
 		recipeCategories = recipeCategoryRegistration.getRecipeCategories();
 
 		RecipeRegistration recipeRegistration = new RecipeRegistration(recipeCategoriesByUid, jeiHelpers, ingredientManager, vanillaRecipeFactory);
@@ -143,7 +141,7 @@ public class PluginLoader {
 	public RecipeManager getRecipeManager() {
 		if (recipeManager == null) {
 			timer.start("Building recipe registry");
-			recipeManager = new RecipeManager(recipeCategories, recipes, recipeCatalysts, ingredientManager, recipeManagerPlugins, modIdHelper);
+			recipeManager = new RecipeManager(recipeCategories, recipes, recipeCatalysts, ingredientManager, recipeManagerPlugins);
 			timer.stop();
 		}
 		return recipeManager;

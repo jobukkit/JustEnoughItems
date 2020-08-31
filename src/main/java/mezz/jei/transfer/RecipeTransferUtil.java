@@ -33,23 +33,23 @@ public final class RecipeTransferUtil {
 	}
 
 	@Nullable
-	public static IRecipeTransferError getTransferRecipeError(RecipeTransferManager recipeTransferManager, Container container, RecipeLayout<?> recipeLayout, PlayerEntity player) {
+	public static IRecipeTransferError getTransferRecipeError(RecipeTransferManager recipeTransferManager, Container container, RecipeLayout recipeLayout, PlayerEntity player) {
 		return transferRecipe(recipeTransferManager, container, recipeLayout, player, false, false);
 	}
 
-	public static boolean transferRecipe(RecipeTransferManager recipeTransferManager, Container container, RecipeLayout<?> recipeLayout, PlayerEntity player, boolean maxTransfer) {
+	public static boolean transferRecipe(RecipeTransferManager recipeTransferManager, Container container, RecipeLayout recipeLayout, PlayerEntity player, boolean maxTransfer) {
 		IRecipeTransferError error = transferRecipe(recipeTransferManager, container, recipeLayout, player, maxTransfer, true);
 		return allowsTransfer(error);
 	}
 
 	@Nullable
-	private static <T extends Container> IRecipeTransferError transferRecipe(RecipeTransferManager recipeTransferManager, T container, RecipeLayout<?> recipeLayout, PlayerEntity player, boolean maxTransfer, boolean doTransfer) {
+	private static IRecipeTransferError transferRecipe(RecipeTransferManager recipeTransferManager, Container container, RecipeLayout recipeLayout, PlayerEntity player, boolean maxTransfer, boolean doTransfer) {
 		final JeiRuntime runtime = Internal.getRuntime();
 		if (runtime == null) {
 			return RecipeTransferErrorInternal.INSTANCE;
 		}
 
-		final IRecipeTransferHandler<? super T> transferHandler = recipeTransferManager.getRecipeTransferHandler(container, recipeLayout.getRecipeCategory());
+		final IRecipeTransferHandler transferHandler = recipeTransferManager.getRecipeTransferHandler(container, recipeLayout.getRecipeCategory());
 		if (transferHandler == null) {
 			if (doTransfer) {
 				LOGGER.error("No Recipe Transfer handler for container {}", container.getClass());
@@ -57,12 +57,17 @@ public final class RecipeTransferUtil {
 			return RecipeTransferErrorInternal.INSTANCE;
 		}
 
-		return transferHandler.transferRecipe(container, recipeLayout.getRecipe(), recipeLayout, player, maxTransfer, doTransfer);
+		//noinspection unchecked
+		return transferHandler.transferRecipe(container, recipeLayout, player, maxTransfer, doTransfer);
 	}
 
 	public static boolean allowsTransfer(@Nullable IRecipeTransferError error) {
-		return error == null ||
-			error.getType() == IRecipeTransferError.Type.COSMETIC;
+		if (error == null) {
+			return true;
+		} else if (error.getType() == IRecipeTransferError.Type.COSMETIC) {
+			return true;
+		}
+		return false;
 	}
 
 	public static class MatchingItemsResult {

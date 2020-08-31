@@ -1,6 +1,5 @@
 package mezz.jei.gui.recipes;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.PlayerEntity;
@@ -13,16 +12,16 @@ import mezz.jei.gui.elements.GuiIconButtonSmall;
 import mezz.jei.recipes.RecipeTransferManager;
 import mezz.jei.transfer.RecipeTransferErrorInternal;
 import mezz.jei.transfer.RecipeTransferUtil;
-import net.minecraft.util.text.TranslationTextComponent;
+import mezz.jei.util.Translator;
 
 public class RecipeTransferButton extends GuiIconButtonSmall {
-	private final RecipeLayout<?> recipeLayout;
+	private final RecipeLayout recipeLayout;
 	@Nullable
 	private IRecipeTransferError recipeTransferError;
 	@Nullable
 	private IOnClickHandler onClickHandler;
 
-	public RecipeTransferButton(int xPos, int yPos, int width, int height, IDrawable icon, RecipeLayout<?> recipeLayout) {
+	public RecipeTransferButton(int xPos, int yPos, int width, int height, IDrawable icon, RecipeLayout recipeLayout) {
 		super(xPos, yPos, width, height, icon, b -> {});
 		this.recipeLayout = recipeLayout;
 	}
@@ -44,13 +43,13 @@ public class RecipeTransferButton extends GuiIconButtonSmall {
 		}
 	}
 
-	public void drawToolTip(MatrixStack matrixStack, int mouseX, int mouseY) {
+	public void drawToolTip(int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			if (recipeTransferError == null) {
-				TranslationTextComponent tooltipTransfer = new TranslationTextComponent("jei.tooltip.transfer");
-				TooltipRenderer.drawHoveringText(tooltipTransfer, mouseX, mouseY, matrixStack);
+				String tooltipTransfer = Translator.translateToLocal("jei.tooltip.transfer");
+				TooltipRenderer.drawHoveringText(tooltipTransfer, mouseX, mouseY);
 			} else {
-				recipeTransferError.showError(matrixStack, mouseX, mouseY, recipeLayout, recipeLayout.getPosX(), recipeLayout.getPosY());
+				recipeTransferError.showError(mouseX, mouseY, recipeLayout, recipeLayout.getPosX(), recipeLayout.getPosY());
 			}
 		}
 	}

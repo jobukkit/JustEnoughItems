@@ -1,6 +1,5 @@
 package mezz.jei.api.gui.ingredient;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
@@ -39,5 +38,5 @@ public interface IGuiIngredient<T> {
 	 *
 	 * @see IRecipeTransferHandlerHelper#createUserErrorForSlots(String, Collection).
 	 */
-	void drawHighlight(MatrixStack matrixStack, int color, int xOffset, int yOffset);
+	void drawHighlight(int color, int xOffset, int yOffset);
 }

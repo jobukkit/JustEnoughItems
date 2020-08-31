@@ -33,7 +33,7 @@ public final class ServerInfo {
 			} else if (networkManager.isLocalChannel()) {
 				MinecraftServer minecraftServer = ServerLifecycleHooks.getCurrentServer();
 				if (minecraftServer != null) {
-					worldUid = minecraftServer.anvilConverterForAnvilFile.func_237282_a_();
+					worldUid = minecraftServer.getFolderName();
 				}
 			} else {
 				ServerData serverData = Minecraft.getInstance().getCurrentServerData();

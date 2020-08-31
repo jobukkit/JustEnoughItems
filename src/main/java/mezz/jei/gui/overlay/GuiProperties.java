@@ -18,7 +18,7 @@ public class GuiProperties implements IGuiProperties {
 	private final int screenHeight;
 
 	@Nullable
-	public static GuiProperties create(ContainerScreen<?> containerScreen) {
+	public static GuiProperties create(ContainerScreen containerScreen) {
 		if (containerScreen.width == 0 || containerScreen.height == 0) {
 			return null;
 		}
@@ -46,7 +46,6 @@ public class GuiProperties implements IGuiProperties {
 		);
 	}
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public static boolean areEqual(@Nullable IGuiProperties a, @Nullable IGuiProperties b) {
 		if (a == b) {
 			return true;
