@@ -68,7 +68,7 @@ public class JEIClientConfig
 		}
 		else {
 			mc.player.sendStatusMessage(new TranslationTextComponent(ModIds.JEI_ID+".message.ftbguilib")
-					.setStyle(Style.EMPTY.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.curseforge.com/minecraft/mc-mods/ftb-gui-library"))), false);
+					.func_230530_a_(Style.field_240709_b_.func_240715_a_(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.curseforge.com/minecraft/mc-mods/ftb-gui-library"))), false);
 		}
 	}
 }
