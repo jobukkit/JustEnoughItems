@@ -27,13 +27,13 @@ apply plugin: 'idea'
 apply plugin: "net.minecraftforge.gradle"
 
 //adds the build number to the end of the version string if on a build server
-String build_number = System.getenv().BUILD_NUMBER
-if (build_number == null) {
-	build_number = "9999"
-}
+//String build_number = System.getenv().BUILD_NUMBER
+//if (build_number == null) {
+//	build_number = "9999"
+//}
 
 String semver = "${version_major}.${version_minor}.${version_patch}"
-version = "${semver}.${build_number}"
+version = "${semver}-koepel"
 group = "mezz.jei" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
@@ -42,8 +42,17 @@ compileJava {
 }
 
 repositories {
-	maven { url 'https://repo1.maven.org/maven2' }
-	maven { url 'https://maven.latmod.com/' }
+//	maven { url 'https://repo1.maven.org/maven2' }
+//	maven { url 'https://maven.latmod.com/' }
+	flatDir {
+		dirs "libs"
+	}
+	maven { url = 'https://libraries.minecraft.net/' }
+	mavenCentral()
+	maven {
+		name "forge"
+		url "https://maven.minecraftforge.net/"
+	}
 }
 
 sourceSets {
